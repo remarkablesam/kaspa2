@@ -91,9 +91,19 @@
             border: 2px dashed #D1D5DB; /* gray-300 */
             background-color: #F9FAFB; /* gray-50 */
             cursor: pointer;
+            position: relative;
+            overflow: hidden;
         }
         .image-upload-placeholder:hover {
             border-color: #A78BFA; /* primary-purple-light */
+        }
+        .image-upload-placeholder img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         /* Modal specific styles */
@@ -117,6 +127,27 @@
         /* Progress bar */
         .progress-bar-fill {
             transition: width 0.3s ease-in-out;
+        }
+        /* Toast Notification */
+        #toast {
+            position: fixed;
+            bottom: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 9999px;
+            font-weight: 500;
+            transition: bottom 0.5s ease-in-out;
+            z-index: 100;
+        }
+        #toast.show {
+            bottom: 30px;
+        }
+        /* Form validation error style */
+        .form-error {
+            border-color: #EF4444; /* red-500 */
         }
     </style>
 </head>
@@ -179,7 +210,7 @@
 
                     <!-- Search Bar matching Splash-1.png -->
                     <div class="relative mb-6">
-                        <input type="text" placeholder="Search products..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-purple">
+                        <input type="text" id="home-search-bar" placeholder="Search products..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-purple">
                         <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                     </div>
 
@@ -231,7 +262,7 @@
                         Curated for you
                         <a href="#" class="text-primary-purple text-sm font-medium see-more-btn" data-target="explore-screen">See more</a>
                     </h4>
-                    <div class="grid grid-cols-2 gap-4">
+                    <div id="home-product-grid" class="grid grid-cols-2 gap-4">
                         <!-- Product Card Example 1 (iPhone 15 Pro max) -->
                         <div class="product-card bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200 cursor-pointer" data-product-name="iPhone 15 Pro max Black | 1TB" data-product-price="999" data-seller="@Techseller" data-image="https://placehold.co/200x200/cccccc/000000?text=iPhone">
                             <!-- Image URL matching Splash-1.png -->
@@ -271,6 +302,10 @@
                             </div>
                         </div>
                     </div>
+                    <div id="home-no-results" class="text-center text-gray-text py-10 hidden">
+                        <i class="fas fa-search text-4xl mb-4"></i>
+                        <p>No products found</p>
+                    </div>
                 </section>
 
                 <!-- Sell Products Section (Initially hidden) -->
@@ -281,16 +316,16 @@
                     <form class="space-y-4" id="create-seller-form">
                         <div>
                             <label for="farcaaster-handle" class="block text-sm font-medium text-gray-700">Farcaster Handle*</label>
-                            <input type="text" id="farcaaster-handle" placeholder="@yourhandle" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-purple focus:border-primary-purple">
+                            <input type="text" id="farcaaster-handle" placeholder="@yourhandle" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-purple focus:border-primary-purple" required>
                         </div>
                         <div>
                             <label for="email-address" class="block text-sm font-medium text-gray-700">Email Address*</label>
-                            <input type="email" id="email-address" placeholder="@youremail" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-purple focus:border-primary-purple">
+                            <input type="email" id="email-address" placeholder="you@example.com" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-purple focus:border-primary-purple" required>
                         </div>
                         <div>
                             <label for="product-category-sell" class="block text-sm font-medium text-gray-700">Product Category*</label>
-                            <select id="product-category-sell" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-purple focus:border-primary-purple">
-                                <option>Select category</option>
+                            <select id="product-category-sell" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-purple focus:border-primary-purple" required>
+                                <option value="">Select category</option>
                                 <option>Fashion</option>
                                 <option>Gadgets</option>
                                 <option>Sports</option>
@@ -300,14 +335,14 @@
                         </div>
                         <div>
                             <label for="location-country-sell" class="block text-sm font-medium text-gray-700">Location/Country*</label>
-                            <input type="text" id="location-country-sell" placeholder="United States" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-purple focus:border-primary-purple">
+                            <input type="text" id="location-country-sell" placeholder="United States" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-purple focus:border-primary-purple" required>
                         </div>
                         <div>
                             <label for="brief-description-sell" class="block text-sm font-medium text-gray-700">Brief Description*</label>
-                            <textarea id="brief-description-sell" rows="4" placeholder="Tell buyers about yourself and what you sell..." class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-purple focus:border-primary-purple"></textarea>
+                            <textarea id="brief-description-sell" rows="4" placeholder="Tell buyers about yourself and what you sell..." class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-purple focus:border-primary-purple" required></textarea>
                         </div>
                         <div class="flex items-start">
-                            <input type="checkbox" id="agree-delivery" class="h-4 w-4 text-primary-purple focus:ring-primary-purple border-gray-300 rounded mt-1 mr-2">
+                            <input type="checkbox" id="agree-delivery" class="h-4 w-4 text-primary-purple focus:ring-primary-purple border-gray-300 rounded mt-1 mr-2" required>
                             <label for="agree-delivery" class="text-sm text-gray-700">I agree to deliver as promised and understand how escrow works*</label>
                         </div>
                         <button type="submit" class="w-full bg-primary-purple text-white py-3 rounded-md font-semibold text-lg hover:bg-secondary-purple transition-colors">
@@ -507,7 +542,7 @@
 
             <!-- Notification Screen -->
             <div id="notification-screen" class="p-4 hidden">
-                <div class="space-y-4">
+                <div id="notification-list" class="space-y-4">
                     <div class="bg-card-bg rounded-lg shadow-sm p-4 flex items-start border border-gray-200">
                         <i class="fas fa-bell text-primary-purple text-xl mt-1 mr-3"></i>
                         <div>
@@ -532,6 +567,10 @@
                             <span class="text-xs text-gray-500 mt-1 block">3 days ago</span>
                         </div>
                     </div>
+                </div>
+                <div id="notification-empty-state" class="text-center text-gray-text py-10 hidden">
+                    <i class="fas fa-bell-slash text-4xl mb-4"></i>
+                    <p>You have no new notifications</p>
                 </div>
             </div>
 
@@ -676,43 +715,52 @@
                             <div class="flex space-x-4">
                                 <!-- Image Upload Placeholder 1 -->
                                 <label class="flex-1 h-32 flex flex-col items-center justify-center rounded-lg image-upload-placeholder">
-                                    <input type="file" class="hidden" accept="image/*" multiple>
-                                    <i class="fas fa-upload text-primary-purple text-2xl mb-2"></i>
-                                    <span class="text-gray-text text-sm">Add Image</span>
+                                    <input type="file" class="hidden image-upload-input" accept="image/*">
+                                    <div class="text-center">
+                                        <i class="fas fa-upload text-primary-purple text-2xl mb-2"></i>
+                                        <span class="text-gray-text text-sm">Add Image</span>
+                                    </div>
+                                    <img class="image-preview hidden" src="#" alt="Image preview">
                                 </label>
                                 <!-- Image Upload Placeholder 2 -->
                                 <label class="flex-1 h-32 flex flex-col items-center justify-center rounded-lg image-upload-placeholder">
-                                    <input type="file" class="hidden" accept="image/*" multiple>
-                                    <i class="fas fa-upload text-primary-purple text-2xl mb-2"></i>
-                                    <span class="text-gray-text text-sm">Add Image</span>
+                                    <input type="file" class="hidden image-upload-input" accept="image/*">
+                                     <div class="text-center">
+                                        <i class="fas fa-upload text-primary-purple text-2xl mb-2"></i>
+                                        <span class="text-gray-text text-sm">Add Image</span>
+                                    </div>
+                                    <img class="image-preview hidden" src="#" alt="Image preview">
                                 </label>
                                 <!-- Image Upload Placeholder 3 -->
                                 <label class="flex-1 h-32 flex flex-col items-center justify-center rounded-lg image-upload-placeholder">
-                                    <input type="file" class="hidden" accept="image/*" multiple>
-                                    <i class="fas fa-upload text-primary-purple text-2xl mb-2"></i>
-                                    <span class="text-gray-text text-sm">Add Image</span>
+                                    <input type="file" class="hidden image-upload-input" accept="image/*">
+                                     <div class="text-center">
+                                        <i class="fas fa-upload text-primary-purple text-2xl mb-2"></i>
+                                        <span class="text-gray-text text-sm">Add Image</span>
+                                    </div>
+                                    <img class="image-preview hidden" src="#" alt="Image preview">
                                 </label>
                             </div>
                         </div>
 
                         <div>
                             <label for="product-title" class="block text-sm font-medium text-gray-700">Product Title*</label>
-                            <input type="text" id="product-title" placeholder="iPhone 15 Pro Max - Like New" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-purple focus:border-primary-purple">
+                            <input type="text" id="product-title" placeholder="iPhone 15 Pro Max - Like New" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-purple focus:border-primary-purple" required>
                         </div>
 
                         <div>
                             <label for="product-description" class="block text-sm font-medium text-gray-700">Description*</label>
-                            <textarea id="product-description" rows="4" placeholder="Detailed description of your product, condition, specifications..." class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-purple focus:border-primary-purple"></textarea>
+                            <textarea id="product-description" rows="4" placeholder="Detailed description of your product, condition, specifications..." class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-purple focus:border-primary-purple" required></textarea>
                         </div>
 
                         <div>
                             <label for="product-price" class="block text-sm font-medium text-gray-700">Price (USD)*</label>
-                            <input type="number" id="product-price" placeholder="999" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-purple focus:border-primary-purple">
+                            <input type="number" id="product-price" placeholder="999" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-purple focus:border-primary-purple" required min="0">
                         </div>
 
                         <div>
                             <label for="country-of-origin" class="block text-sm font-medium text-gray-700">Country of Origin*</label>
-                            <input type="text" id="country-of-origin" placeholder="United States" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-purple focus:border-primary-purple">
+                            <input type="text" id="country-of-origin" placeholder="United States" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-purple focus:border-primary-purple" required>
                         </div>
 
                         <div>
@@ -731,13 +779,13 @@
             <div id="order-management-screen" class="hidden">
                 <div class="p-4">
                     <div class="relative mb-6">
-                        <input type="text" placeholder="Search orders..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-purple">
+                        <input type="text" id="order-search-bar" placeholder="Search orders..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-purple">
                         <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                     </div>
 
-                    <div class="space-y-4">
+                    <div id="order-list" class="space-y-4">
                         <!-- Order Card Example 1 (iPhone 15 Pro Max - Pending) -->
-                        <div class="bg-card-bg rounded-lg shadow-sm p-4 border border-gray-200">
+                        <div class="order-card bg-card-bg rounded-lg shadow-sm p-4 border border-gray-200">
                             <div class="flex justify-between items-start mb-2">
                                 <div class="flex items-center">
                                     <img src="https://placehold.co/60x60/cccccc/000000?text=iPhone" alt="iPhone 15 Pro Max" class="w-16 h-16 object-cover rounded-md mr-3">
@@ -763,7 +811,7 @@
                         </div>
 
                         <!-- Order Card Example 2 (Asus Geoforce- RX 4080 - Shipped) -->
-                        <div class="bg-card-bg rounded-lg shadow-sm p-4 border border-gray-200">
+                        <div class="order-card bg-card-bg rounded-lg shadow-sm p-4 border border-gray-200">
                             <div class="flex justify-between items-start mb-2">
                                 <div class="flex items-center">
                                     <img src="https://placehold.co/60x60/cccccc/000000?text=Asus" alt="Asus Geoforce- RX 4080" class="w-16 h-16 object-cover rounded-md mr-3">
@@ -787,6 +835,10 @@
                                 Marked as shipped
                             </button>
                         </div>
+                    </div>
+                     <div id="order-no-results" class="text-center text-gray-text py-10 hidden">
+                        <i class="fas fa-box-open text-4xl mb-4"></i>
+                        <p>No orders found</p>
                     </div>
                 </div>
             </div>
@@ -960,10 +1012,10 @@
                 </div>
             </div>
 
-            <form class="space-y-4">
+            <form class="space-y-4" id="dispute-form">
                 <div>
                     <label for="dispute-reason" class="block text-sm font-medium text-gray-700">Reason for Dispute*</label>
-                    <textarea id="dispute-reason" rows="4" placeholder="Please describe the issue (e.g item not received, item not as described, changed item etc,)" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-purple focus:border-primary-purple"></textarea>
+                    <textarea id="dispute-reason" rows="4" placeholder="Please describe the issue (e.g item not received, item not as described, changed item etc,)" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-purple focus:border-primary-purple" required></textarea>
                 </div>
                 <div>
                     <label for="additional-details" class="block text-sm font-medium text-gray-700">Additional Details</label>
@@ -972,10 +1024,13 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Upload Evidence (Optional)</label>
                     <label class="w-full h-32 flex flex-col items-center justify-center rounded-lg image-upload-placeholder">
-                        <input type="file" class="hidden" accept="image/png,image/jpeg,application/pdf" multiple>
-                        <i class="fas fa-upload text-primary-purple text-2xl mb-2"></i>
-                        <span class="text-gray-text text-sm">Click to upload photos or documents</span>
-                        <span class="text-xs text-gray-400">PNG, JPG, PDF up to 10MB each</span>
+                        <input type="file" class="hidden image-upload-input" accept="image/png,image/jpeg,application/pdf">
+                        <div class="text-center">
+                            <i class="fas fa-upload text-primary-purple text-2xl mb-2"></i>
+                            <span class="text-gray-text text-sm">Click to upload photos or documents</span>
+                            <span class="text-xs text-gray-400">PNG, JPG, PDF up to 10MB each</span>
+                        </div>
+                        <img class="image-preview hidden" src="#" alt="Image preview">
                     </label>
                 </div>
                 <div class="bg-light-green-bg border border-accent-green rounded-lg p-4 flex items-start text-sm text-gray-700">
@@ -1137,11 +1192,16 @@
                     <p class="text-dark-text text-xl mb-4 text-right">Total (including fees) <span class="text-accent-green font-bold" id="modal-total-price-payment">$999</span></p>
 
                     <div class="bg-processing-bg rounded-lg p-4 flex flex-col items-center justify-center text-center border border-primary-purple mb-6">
-                        <i class="fas fa-wallet text-primary-purple text-4xl mb-3"></i>
-                        <p class="text-dark-text font-semibold mb-2">Connect Your Wallet to proceed with secure payment</p>
-                        <button id="connect-wallet-btn" class="w-full bg-primary-purple text-white py-3 rounded-md font-semibold text-lg hover:bg-secondary-purple transition-colors">
-                            Connect Wallet
-                        </button>
+                        <div id="connect-wallet-loader" class="hidden my-4">
+                            <i class="fas fa-spinner fa-spin text-primary-purple text-4xl"></i>
+                        </div>
+                        <div id="connect-wallet-content">
+                            <i class="fas fa-wallet text-primary-purple text-4xl mb-3"></i>
+                            <p class="text-dark-text font-semibold mb-2">Connect Your Wallet to proceed with secure payment</p>
+                            <button id="connect-wallet-btn" class="w-full bg-primary-purple text-white py-3 rounded-md font-semibold text-lg hover:bg-secondary-purple transition-colors">
+                                Connect Wallet
+                            </button>
+                        </div>
                     </div>
 
                     <div class="flex space-x-4 mt-6">
@@ -1289,6 +1349,9 @@
 
         </div>
     </div>
+    
+    <!-- Toast Notification -->
+    <div id="toast"></div>
 
 
     <script>
@@ -1378,6 +1441,18 @@
         // Notification badge element
         const notificationBadge = document.getElementById('notification-badge');
         let notificationCount = 2; // Initial notification count
+
+        // Toast element
+        const toast = document.getElementById('toast');
+
+        // Helper function to show toast
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000); // Hide after 3 seconds
+        }
 
         // Helper function to show modals
         function showModal(title, message, callback) {
@@ -1470,21 +1545,24 @@
         // Handle "Connect Wallet" button
         const connectWalletBtn = document.getElementById('connect-wallet-btn');
         const continueToEscrowAfterWalletBtn = document.getElementById('continue-to-escrow-after-wallet');
+        const connectWalletLoader = document.getElementById('connect-wallet-loader');
+        const connectWalletContent = document.getElementById('connect-wallet-content');
         if (connectWalletBtn) {
             connectWalletBtn.addEventListener('click', () => {
-                connectWalletBtn.textContent = 'Connecting...';
-                connectWalletBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                connectWalletBtn.disabled = true;
+                connectWalletContent.classList.add('hidden');
+                connectWalletLoader.classList.remove('hidden');
 
                 setTimeout(() => {
-                    showModal('Connected', 'Your wallet has been successfully connected', () => {
-                        connectWalletBtn.textContent = 'Wallet Connected';
-                        connectWalletBtn.classList.remove('bg-primary-purple', 'hover:bg-secondary-purple');
-                        connectWalletBtn.classList.add('bg-accent-green', 'cursor-not-allowed'); // Keep disabled
-                        continueToEscrowAfterWalletBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                        continueToEscrowAfterWalletBtn.disabled = false;
-                        connectWalletBtn.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Wallet Connected'; // Add checkmark
-                    });
+                    connectWalletLoader.classList.add('hidden');
+                    connectWalletContent.classList.remove('hidden');
+                    showToast('Wallet connected successfully!');
+                    connectWalletBtn.textContent = 'Wallet Connected';
+                    connectWalletBtn.classList.remove('bg-primary-purple', 'hover:bg-secondary-purple');
+                    connectWalletBtn.classList.add('bg-accent-green', 'cursor-not-allowed');
+                    connectWalletBtn.disabled = true;
+                    continueToEscrowAfterWalletBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    continueToEscrowAfterWalletBtn.disabled = false;
+                    connectWalletBtn.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Wallet Connected';
                 }, 1500); // Simulate connection time
             });
         }
@@ -1496,9 +1574,7 @@
                 updateSecurePurchaseStep(5); // Go to processing step
                 setTimeout(() => {
                     showModal('Successful', 'Your payment was successful and your item is on the way', () => {
-                        // After successful payment, go to order status shipped.
                         // For demonstration, we'll hardcode to the shipped status.
-                        // In a real app, this would depend on actual order status.
                         orderStatusShippedId.textContent = 'XXYYZZ'; // Example ID
                         transactionDetailsImageShipped.src = modalProductImageProcessing.src;
                         transactionDetailsNameShipped.textContent = modalProductNameProcessing.textContent;
@@ -1516,9 +1592,10 @@
         const raiseDisputeBtns = document.querySelectorAll('.raise-dispute-btn');
         raiseDisputeBtns.forEach(btn => {
             btn.addEventListener('click', (event) => {
-                const productName = event.target.dataset.productName;
-                const sellerHandle = event.target.dataset.sellerHandle;
-                const orderId = event.target.dataset.orderId;
+                const button = event.currentTarget;
+                const productName = button.dataset.productName;
+                const sellerHandle = button.dataset.sellerHandle;
+                const orderId = button.dataset.orderId;
 
                 disputeProductName.textContent = productName;
                 disputeSellerHandle.textContent = sellerHandle;
@@ -1527,19 +1604,24 @@
                 disputeModal.classList.remove('hidden');
             });
         });
+        
+        const disputeForm = document.getElementById('dispute-form');
+        if(disputeForm) {
+            disputeForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                showModal('Dispute Submitted', 'Your dispute has been submitted successfully!', () => {
+                    disputeModal.classList.add('hidden');
+                    disputeForm.reset();
+                    showScreen('buyer-orders-screen');
+                });
+            });
+        }
 
         disputeModalCloseBtn.addEventListener('click', () => {
             disputeModal.classList.add('hidden');
         });
         disputeCancelBtn.addEventListener('click', () => {
             disputeModal.classList.add('hidden');
-        });
-        submitDisputeBtn.addEventListener('click', (event) => {
-            event.preventDefault(); // Prevent form submission for this example
-            showModal('Dispute Submitted', 'Your dispute has been submitted successfully!', () => {
-                disputeModal.classList.add('hidden');
-                showScreen('buyer-orders-screen');
-            });
         });
 
         // --- Buyer Protection Modal Logic ---
@@ -1616,12 +1698,7 @@
                             screens = document.querySelectorAll('main > div[id$="-screen"]');
                             navItems = document.querySelectorAll('.nav-item');
                             
-                            if (notificationCount > 0) {
-                                notificationBadge.textContent = notificationCount;
-                                notificationBadge.classList.remove('hidden');
-                            } else {
-                                notificationBadge.classList.add('hidden');
-                            }
+                            updateNotificationBadge();
 
                             navItems.forEach(item => {
                                 item.addEventListener('click', () => {
@@ -1629,7 +1706,7 @@
                                     showScreen(targetScreen);
                                     if (targetScreen === 'notification-screen') {
                                         notificationCount = 0;
-                                        notificationBadge.classList.add('hidden');
+                                        updateNotificationBadge();
                                     }
                                 });
                             });
@@ -1781,13 +1858,48 @@
             tabIndicator.classList.add('active-sell');
         });
 
+        // --- Form Validation ---
+        function validateForm(form) {
+            let isValid = true;
+            form.querySelectorAll('[required]').forEach(input => {
+                if ((input.type === 'checkbox' && !input.checked) || (input.value.trim() === '')) {
+                    isValid = false;
+                    input.classList.add('form-error');
+                } else if (input.type === 'email' && !/^\S+@\S+\.\S+$/.test(input.value)) {
+                    isValid = false;
+                    input.classList.add('form-error');
+                } else {
+                    input.classList.remove('form-error');
+                }
+            });
+            return isValid;
+        }
+
         const createSellerForm = document.getElementById('create-seller-form');
         if (createSellerForm) {
             createSellerForm.addEventListener('submit', (event) => {
                 event.preventDefault(); 
-                showModal('Successful', 'Your seller account has been successfully created', () => {
-                    showScreen('seller-dashboard-screen'); 
-                });
+                if (validateForm(createSellerForm)) {
+                    showModal('Successful', 'Your seller account has been successfully created', () => {
+                        showScreen('seller-dashboard-screen'); 
+                    });
+                } else {
+                    showToast('Please fill all required fields correctly.');
+                }
+            });
+        }
+        
+        const listProductForm = document.getElementById('list-product-form');
+        if (listProductForm) {
+            listProductForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                if (validateForm(listProductForm)) {
+                    showModal('Successful', 'Your product has been successfully listed', () => {
+                        showScreen('seller-dashboard-screen');
+                    });
+                } else {
+                    showToast('Please fill all required fields correctly.');
+                }
             });
         }
 
@@ -1799,15 +1911,6 @@
             showScreen('order-management-screen');
         });
 
-        const listProductForm = document.getElementById('list-product-form');
-        if (listProductForm) {
-            listProductForm.addEventListener('submit', (event) => {
-                event.preventDefault();
-                showModal('Successful', 'Your product has been successfully listed', () => {
-                    showScreen('seller-dashboard-screen');
-                });
-            });
-        }
         
         document.querySelectorAll('#order-management-screen button.bg-primary-purple').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -1821,13 +1924,86 @@
             const inputElement = document.getElementById(elementId);
             inputElement.select();
             document.execCommand('copy');
-            showModal('Copied!', 'Tracking ID copied to clipboard.', null);
+            showToast('Tracking ID copied to clipboard!');
         }
 
         document.querySelectorAll('.copy-btn').forEach(button => {
             button.addEventListener('click', (event) => {
                 const targetId = event.currentTarget.dataset.targetId;
                 copyToClipboard(targetId);
+            });
+        });
+
+        // --- Real-time Search ---
+        function filterList(input, listContainer, itemSelector, textSelector, noResultsElement) {
+            const searchTerm = input.value.toLowerCase();
+            const items = listContainer.querySelectorAll(itemSelector);
+            let itemsFound = 0;
+
+            items.forEach(item => {
+                const text = item.querySelector(textSelector).textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    item.style.display = '';
+                    itemsFound++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            if (itemsFound === 0) {
+                noResultsElement.classList.remove('hidden');
+            } else {
+                noResultsElement.classList.add('hidden');
+            }
+        }
+        
+        const homeSearchBar = document.getElementById('home-search-bar');
+        const homeProductGrid = document.getElementById('home-product-grid');
+        const homeNoResults = document.getElementById('home-no-results');
+        homeSearchBar.addEventListener('input', () => {
+            filterList(homeSearchBar, homeProductGrid, '.product-card', '.font-semibold', homeNoResults);
+        });
+
+        const orderSearchBar = document.getElementById('order-search-bar');
+        const orderList = document.getElementById('order-list');
+        const orderNoResults = document.getElementById('order-no-results');
+        orderSearchBar.addEventListener('input', () => {
+            filterList(orderSearchBar, orderList, '.order-card', '.font-semibold', orderNoResults);
+        });
+        
+        // --- Empty States ---
+        function updateNotificationBadge() {
+            const notificationList = document.getElementById('notification-list');
+            const emptyState = document.getElementById('notification-empty-state');
+            if (notificationCount > 0) {
+                notificationBadge.textContent = notificationCount;
+                notificationBadge.classList.remove('hidden');
+                notificationList.classList.remove('hidden');
+                emptyState.classList.add('hidden');
+            } else {
+                notificationBadge.classList.add('hidden');
+                notificationList.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+            }
+        }
+
+        // --- Image Upload Previews ---
+        document.querySelectorAll('.image-upload-input').forEach(input => {
+            input.addEventListener('change', (event) => {
+                const placeholder = event.target.parentElement;
+                const preview = placeholder.querySelector('.image-preview');
+                const iconAndText = placeholder.querySelector('.text-center');
+                
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        preview.src = e.target.result;
+                        preview.classList.remove('hidden');
+                        iconAndText.classList.add('hidden');
+                    }
+                    reader.readAsDataURL(file);
+                }
             });
         });
     </script>
