@@ -1,0 +1,1835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Know Empire</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary-purple': '#6F00FF', // From Splash.png background and main accent
+                        'secondary-purple': '#9333ea', // Slightly darker purple for accents/hover
+                        'light-gray-bg': '#F9F9F9', // General background color
+                        'dark-text': '#1a202c', // General dark text (headers, strong text)
+                        'gray-text': '#4a5568', // Lighter gray text (paragraphs, inactive elements)
+                        'accent-green': '#4CAF50', // Verified/Success green
+                        'accent-orange': '#FF7C2C', // Dispute button orange
+                        'accent-yellow': '#FFC107', // Rating stars/Pending yellow
+                        'light-purple': '#EADDFF', // Light purple for category circles (primary-purple with opacity 10% isn't quite the same as the image)
+                        'border-light': '#E2E8F0', // Light border color
+                        'rank-gold': '#FFD700', // Gold for rank 1
+                        'rank-silver': '#C0C0C0', // Silver for rank 2
+                        'rank-bronze': '#CD7F32', // Bronze for rank 3
+                        'card-bg': '#FDFDFD', // Background for cards
+                        'verified-green': '#34C759', // Specific green for the verified badge
+                        'light-green-bg': '#DFF2DF', // Light green background for protection section
+                        'processing-bg': '#E0E7FF', // Light blue/purple for processing step
+                        'profile-orange-icon': '#EE7435', // Specific orange for profile stats icon
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif'], // Assuming Inter font based on common UI practices
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Custom scrollbar for category section */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        /* Style for the active tab indicator */
+        .tab-indicator {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            width: 50%; /* Adjust based on number of tabs */
+            background-color: transparent;
+            transition: transform 0.3s ease-in-out;
+            border-radius: 9999px; /* Fully rounded */
+        }
+        .tab-indicator.active-buy {
+            transform: translateX(0%);
+            background-color: #6F00FF; /* Primary purple for active tab */
+        }
+        .tab-indicator.active-sell {
+            transform: translateX(100%);
+            background-color: #6F00FF; /* Primary purple for active tab */
+        }
+        /* Fade in animation for splash screens */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in forwards;
+        }
+        .fade-out {
+            animation: fadeOut 0.5s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        .hidden-fade {
+            display: none;
+            opacity: 0;
+        }
+        /* For image upload placeholder */
+        .image-upload-placeholder {
+            border: 2px dashed #D1D5DB; /* gray-300 */
+            background-color: #F9FAFB; /* gray-50 */
+            cursor: pointer;
+        }
+        .image-upload-placeholder:hover {
+            border-color: #A78BFA; /* primary-purple-light */
+        }
+
+        /* Modal specific styles */
+        .modal {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        .modal-content {
+            animation: slideInFromBottom 0.3s ease-out forwards;
+        }
+        @keyframes slideInFromBottom {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0%); opacity: 1; }
+        }
+        .modal.hidden .modal-content {
+            animation: slideOutToBottom 0.3s ease-in forwards;
+        }
+        @keyframes slideOutToBottom {
+            from { transform: translateY(0%); opacity: 1; }
+            to { transform: translateY(100%); opacity: 0; }
+        }
+        /* Progress bar */
+        .progress-bar-fill {
+            transition: width 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="font-inter bg-light-gray-bg min-h-screen">
+
+    <!-- Splash Screen 1 -->
+    <div id="splash1" class="fixed inset-0 bg-primary-purple flex flex-col items-center justify-center z-50 fade-in">
+        <img src="https://placehold.co/100x100/ffffff/000000?text=KE" alt="Know Empire Logo" class="mb-4">
+        <h1 class="text-white text-3xl font-bold">Know Empire</h1>
+    </div>
+
+    <!-- Splash Screen 2 -->
+    <div id="splash2" class="fixed inset-0 bg-light-gray-bg flex flex-col items-center justify-center z-40 hidden-fade">
+        <img src="https://placehold.co/150x150/EADDFF/6F00FF?text=🛒" alt="Shopcast Logo" class="mb-4">
+        <h1 class="text-dark-text text-4xl font-extrabold">Shopcast</h1>
+    </div>
+
+    <!-- Main Application Container -->
+    <div id="app-container" class="w-full min-h-screen bg-white shadow-lg flex flex-col hidden-fade">
+
+        <!-- Top Header - (Generic for all main screens) -->
+        <header id="main-header" class="flex items-center justify-between p-4 bg-white border-b border-gray-100">
+            <!-- Header content will be dynamically updated by JS based on current screen -->
+            <div id="header-left" class="flex items-center space-x-2">
+                <!-- Content set by JS -->
+            </div>
+            <div id="header-center" class="text-lg font-semibold text-dark-text"></div>
+            <div id="header-right" class="flex items-center space-x-4">
+                <!-- Content set by JS -->
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 overflow-y-auto pb-20"> <!-- Added pb-20 for bottom nav padding -->
+            
+            <!-- Home Screen -->
+            <div id="home-screen" class="p-4 space-y-4">
+                <!-- Welcome Section -->
+                <div class="mb-4">
+                    <h2 class="text-2xl font-bold text-dark-text">Welcome back!</h2>
+                    <p class="text-gray-text text-sm text-center">To your secure marketplace for digital assets</p>
+                </div>
+
+                <!-- Buy/Sell Tabs matching Splash-1.png -->
+                <div class="relative flex bg-light-gray-bg rounded-full p-1 mb-6">
+                    <button id="buy-products-tab" class="flex-1 py-2 px-4 rounded-full text-center text-dark-text font-semibold relative z-10 bg-white shadow-sm">
+                        <i class="fas fa-shopping-bag mr-2 text-primary-purple"></i>Buy Products
+                    </button>
+                    <button id="sell-products-tab" class="flex-1 py-2 px-4 rounded-full text-center text-gray-text font-semibold relative z-10">
+                        <i class="fas fa-store mr-2"></i>Sell Products
+                    </button>
+                    <!-- Tab indicator position and color controlled by JS -->
+                    <div id="tab-indicator" class="tab-indicator active-buy"></div>
+                </div>
+
+                <!-- Marketplace Section -->
+                <section id="marketplace-buy-section">
+                    <h3 class="text-xl font-bold text-dark-text mb-2">Marketplace</h3>
+                    <p class="text-gray-text text-sm mb-4 text-center">Discover and buy products securely</p>
+
+                    <!-- Search Bar matching Splash-1.png -->
+                    <div class="relative mb-6">
+                        <input type="text" placeholder="Search products..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-purple">
+                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    </div>
+
+                    <!-- Shop by Category (Scrollable) matching Splash-1.png -->
+                    <h4 class="text-lg font-semibold text-dark-text mb-3 flex justify-between items-center">
+                        Shop by category
+                        <a href="#" class="text-primary-purple text-sm font-medium see-more-btn" data-target="explore-screen">See more</a>
+                    </h4>
+                    <div class="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide">
+                        <!-- Category Item Example - Fashion -->
+                        <div class="flex flex-col items-center min-w-[80px]">
+                            <div class="w-16 h-16 bg-light-purple rounded-full flex items-center justify-center mb-2">
+                                <i class="fas fa-shirt text-primary-purple text-2xl"></i>
+                            </div>
+                            <span class="text-sm text-dark-text">Fashion</span>
+                        </div>
+                        <!-- Category Item Example - Gadgets -->
+                        <div class="flex flex-col items-center min-w-[80px]">
+                            <div class="w-16 h-16 bg-light-purple rounded-full flex items-center justify-center mb-2">
+                                <i class="fas fa-laptop text-primary-purple text-2xl"></i>
+                            </div>
+                            <span class="text-sm text-dark-text">Gadgets</span>
+                        </div>
+                        <!-- Category Item Example - Sports -->
+                        <div class="flex flex-col items-center min-w-[80px]">
+                            <div class="w-16 h-16 bg-light-purple rounded-full flex items-center justify-center mb-2">
+                                <i class="fas fa-baseball-ball text-primary-purple text-2xl"></i>
+                            </div>
+                            <span class="text-sm text-dark-text">Sports</span>
+                        </div>
+                        <!-- Category Item Example - Books -->
+                        <div class="flex flex-col items-center min-w-[80px]">
+                            <div class="w-16 h-16 bg-light-purple rounded-full flex items-center justify-center mb-2">
+                                <i class="fas fa-book-open text-primary-purple text-2xl"></i>
+                            </div>
+                            <span class="text-sm text-dark-text">Books</span>
+                        </div>
+                        <!-- Category Item Example - Home -->
+                        <div class="flex flex-col items-center min-w-[80px]">
+                            <div class="w-16 h-16 bg-light-purple rounded-full flex items-center justify-center mb-2">
+                                <i class="fas fa-house text-primary-purple text-2xl"></i>
+                            </div>
+                            <span class="text-sm text-dark-text">Home</span>
+                        </div>
+                    </div>
+
+                    <!-- Curated for you - Product Cards matching Splash-1.png -->
+                    <h4 class="text-lg font-semibold text-dark-text mb-3 flex justify-between items-center">
+                        Curated for you
+                        <a href="#" class="text-primary-purple text-sm font-medium see-more-btn" data-target="explore-screen">See more</a>
+                    </h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <!-- Product Card Example 1 (iPhone 15 Pro max) -->
+                        <div class="product-card bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200 cursor-pointer" data-product-name="iPhone 15 Pro max Black | 1TB" data-product-price="999" data-seller="@Techseller" data-image="https://placehold.co/200x200/cccccc/000000?text=iPhone">
+                            <!-- Image URL matching Splash-1.png -->
+                            <img src="https://placehold.co/200x200/cccccc/000000?text=iPhone+15" alt="iPhone 15 Pro max" class="w-full h-32 object-cover">
+                            <div class="p-3">
+                                <p class="font-semibold text-dark-text text-sm mb-1">iPhone 15 Pro max</p>
+                                <div class="flex items-center justify-between text-xs text-gray-600 mb-2">
+                                    <span class="text-primary-purple font-bold text-base">$999</span>
+                                    <div class="flex items-center space-x-1">
+                                        <span class="text-gray-text">@Techseller</span>
+                                        <i class="fas fa-map-marker-alt text-gray-400 text-xs"></i>
+                                        <span class="text-gray-text">United States</span>
+                                    </div>
+                                </div>
+                                <button class="w-full bg-primary-purple text-white py-2 rounded-md font-semibold text-sm hover:bg-secondary-purple transition-colors flex items-center justify-center">
+                                    <i class="fas fa-shopping-cart mr-2"></i>Buy now
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Product Card Example 2 (Asus Geoforce- RX 4080) -->
+                        <div class="product-card bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200 cursor-pointer" data-product-name="Gaming Laptop - RTX 4080" data-product-price="1299" data-seller="@gamerpro" data-image="https://placehold.co/200x200/cccccc/000000?text=Asus+Laptop">
+                            <!-- Image URL matching Splash-1.png -->
+                            <img src="https://placehold.co/200x200/cccccc/000000?text=Asus+Laptop" alt="Asus Geoforce- RX 4080" class="w-full h-32 object-cover">
+                            <div class="p-3">
+                                <p class="font-semibold text-dark-text text-sm mb-1">Asus Geoforce- RX 4080</p>
+                                <div class="flex items-center justify-between text-xs text-gray-600 mb-2">
+                                    <span class="text-primary-purple font-bold text-base">$1,299</span>
+                                    <div class="flex items-center space-x-1">
+                                        <span class="text-gray-text">@Techseller</span>
+                                        <i class="fas fa-map-marker-alt text-gray-400 text-xs"></i>
+                                        <span class="text-gray-text">Germany</span>
+                                    </div>
+                                </div>
+                                <button class="w-full bg-primary-purple text-white py-2 rounded-md font-semibold text-sm hover:bg-secondary-purple transition-colors flex items-center justify-center">
+                                    <i class="fas fa-shopping-cart mr-2"></i>Buy now
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Sell Products Section (Initially hidden) -->
+                <section id="marketplace-sell-section" class="hidden">
+                    <h3 class="text-xl font-bold text-dark-text mb-4">Become a seller</h3>
+                    <p class="text-gray-text text-sm mb-6">Join Know Empire and start selling your products securely.</p>
+
+                    <form class="space-y-4" id="create-seller-form">
+                        <div>
+                            <label for="farcaaster-handle" class="block text-sm font-medium text-gray-700">Farcaster Handle*</label>
+                            <input type="text" id="farcaaster-handle" placeholder="@yourhandle" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-purple focus:border-primary-purple">
+                        </div>
+                        <div>
+                            <label for="email-address" class="block text-sm font-medium text-gray-700">Email Address*</label>
+                            <input type="email" id="email-address" placeholder="@youremail" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-purple focus:border-primary-purple">
+                        </div>
+                        <div>
+                            <label for="product-category-sell" class="block text-sm font-medium text-gray-700">Product Category*</label>
+                            <select id="product-category-sell" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-purple focus:border-primary-purple">
+                                <option>Select category</option>
+                                <option>Fashion</option>
+                                <option>Gadgets</option>
+                                <option>Sports</option>
+                                <option>Books</option>
+                                <option>Home</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="location-country-sell" class="block text-sm font-medium text-gray-700">Location/Country*</label>
+                            <input type="text" id="location-country-sell" placeholder="United States" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-purple focus:border-primary-purple">
+                        </div>
+                        <div>
+                            <label for="brief-description-sell" class="block text-sm font-medium text-gray-700">Brief Description*</label>
+                            <textarea id="brief-description-sell" rows="4" placeholder="Tell buyers about yourself and what you sell..." class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-purple focus:border-primary-purple"></textarea>
+                        </div>
+                        <div class="flex items-start">
+                            <input type="checkbox" id="agree-delivery" class="h-4 w-4 text-primary-purple focus:ring-primary-purple border-gray-300 rounded mt-1 mr-2">
+                            <label for="agree-delivery" class="text-sm text-gray-700">I agree to deliver as promised and understand how escrow works*</label>
+                        </div>
+                        <button type="submit" class="w-full bg-primary-purple text-white py-3 rounded-md font-semibold text-lg hover:bg-secondary-purple transition-colors">
+                            Create seller account
+                        </button>
+                    </form>
+                </section>
+            </div>
+
+            <!-- Explore Screen (Populated with products from Popular Skills.png) -->
+            <div id="explore-screen" class="p-4 hidden">
+                <h2 class="text-2xl font-bold text-dark-text mb-4">Explore Popular Skills</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <!-- Product Card Example 1 (iPhone 15 Pro max) -->
+                    <div class="product-card bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200 cursor-pointer" data-product-name="Iphone 15 Pro max" data-product-price="898" data-seller="@Techseller" data-image="https://placehold.co/200x200/cccccc/000000?text=iPhone+15">
+                        <img src="https://placehold.co/200x200/cccccc/000000?text=iPhone+15" alt="iPhone 15 Pro max" class="w-full h-32 object-cover">
+                        <div class="p-3">
+                            <p class="font-semibold text-dark-text text-sm mb-1">Iphone 15 Pro max</p>
+                            <div class="flex items-center justify-between text-xs text-gray-600 mb-2">
+                                <span class="text-primary-purple font-bold text-base">$898</span>
+                                <div class="flex items-center space-x-1">
+                                    <svg width="16" height="16" viewBox="0 0 36 39" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-accent-yellow">
+                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M18 0C16.987 0 16.0543 0.272093 15.0346 0.729209C14.0484 1.17181 12.9031 1.82302 11.4781 2.63386L8.01544 4.602C6.26567 5.59605 4.86753 6.39237 3.78419 7.17419C2.66567 7.98502 1.80167 8.83758 1.17377 9.99307C0.547535 11.1449 0.266232 12.3929 0.130605 13.8786C-8.73277e-08 15.3207 0 17.0929 0 19.324V19.676C0 21.9071 -8.73277e-08 23.6793 0.130605 25.1214C0.266232 26.6089 0.549209 27.8551 1.17377 29.0069C1.80167 30.1624 2.664 31.015 3.78586 31.8258C4.86586 32.6076 6.26567 33.404 8.01544 34.398L11.4781 36.3661C12.9031 37.177 14.0484 37.8282 15.0346 38.2708C16.056 38.7279 16.987 39 18 39C19.013 39 19.9457 38.7279 20.9654 38.2708C21.9516 37.8282 23.0969 37.177 24.5219 36.3661L27.9846 34.3998C29.7343 33.404 31.1325 32.6076 32.2141 31.8258C33.336 31.015 34.1983 30.1624 34.8262 29.0069C35.4525 27.8551 35.7338 26.6071 35.8694 25.1214C36 23.6793 36 21.9071 36 19.6778V19.3222C36 17.0929 36 15.3207 35.8694 13.8786C35.7338 12.3911 35.4508 11.1449 34.8262 9.99307C34.1983 8.83758 33.336 7.98502 32.2141 7.17419C31.1341 6.39237 29.7343 5.59605 27.9846 4.602L24.5219 2.63386C23.0969 1.82302 21.9516 1.17181 20.9654 0.729209C19.944 0.272093 19.013 0 18 0ZM12.5916 5.07181C14.0819 4.2247 15.1267 3.63335 15.994 3.24516C16.838 2.86605 17.4324 2.72093 18 2.72093C18.5693 2.72093 19.162 2.86605 20.006 3.24516C20.8733 3.63335 21.9165 4.2247 23.4067 5.07181L26.7555 6.97647C28.5807 8.01223 29.8616 8.74326 30.821 9.43619C31.2932 9.77902 31.6633 10.0965 31.9647 10.4157L26.3872 13.436L12.1546 5.32033L12.5916 5.07181ZM9.53581 6.80958L9.24446 6.97647C7.41935 8.01223 6.13842 8.74326 5.18065 9.43619C4.77229 9.72366 4.38943 10.0516 4.03702 10.4157L18 17.9799L23.621 14.9325L9.88074 7.09981C9.75189 7.02416 9.63536 6.92612 9.53581 6.80958ZM2.82642 12.8011C2.7427 13.1893 2.6774 13.63 2.63051 14.1434C2.5133 15.4386 2.51163 17.0766 2.51163 19.393V19.6052C2.51163 21.9234 2.51163 23.5614 2.63051 24.8548C2.74605 26.1191 2.96540 26.9372 3.33879 27.6265C3.71051 28.3104 4.248 28.889 5.18065 29.5638C6.13842 30.2567 7.41935 30.9878 9.24446 32.0235L12.5933 33.9282C14.0835 34.7753 15.1267 35.3667 15.994 35.7548C16.2664 35.877 16.5165 35.9767 16.7442 36.0541V20.3399L2.82642 12.8011ZM19.2558 36.0523C19.4835 35.9761 19.7336 35.877 20.006 35.7548C20.8733 35.3667 21.9165 34.7753 23.4067 33.9282L26.7555 32.0235C28.5807 30.986 29.8616 30.2567 30.821 29.5638C31.752 28.889 32.2895 28.3104 32.6629 27.6265C33.0363 26.9372 33.254 26.1209 33.3695 24.8548C33.4867 23.5614 33.4884 21.9234 33.4884 19.607V19.3948C33.4884 17.0766 33.4884 15.4386 33.3695 14.1452C33.3301 13.6938 33.2646 13.2455 33.1736 12.8029L27.6279 15.805V21.314C27.6279 21.6748 27.4956 22.0208 27.2601 22.2759C27.0246 22.5311 26.7052 22.6744 26.3721 22.6744C26.039 22.6744 25.7196 22.5311 25.4841 22.2759C25.2486 22.0208 25.1163 21.6748 25.1163 21.314V17.1673L19.2558 20.3417V36.0523Z" fill="currentColor"/>
+                                    </svg>
+                                    <span class="text-gray-text text-xs">Unlimited</span>
+                                </div>
+                            </div>
+                            <button class="w-full bg-primary-purple text-white py-2 rounded-md font-semibold text-sm hover:bg-secondary-purple transition-colors flex items-center justify-center">
+                                <i class="fas fa-shopping-cart mr-2"></i>Buy now (Escrow)
+                            </button>
+                        </div>
+                    </div>
+                     <!-- Product Card Example 3 (2024-25 Manchester United Home Shirt) -->
+                     <div class="product-card bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200 cursor-pointer" data-product-name="2024-25 Manchester United Home Shirt" data-product-price="89.70" data-seller="@Techseller" data-image="https://placehold.co/200x200/cccccc/000000?text=ManU+Shirt">
+                        <img src="https://placehold.co/200x200/cccccc/000000?text=ManU+Shirt" alt="2024-25 Manchester United Home Shirt" class="w-full h-32 object-cover">
+                        <div class="p-3">
+                            <p class="font-semibold text-dark-text text-sm mb-1">2024-25 Manchester United Home Shirt</p>
+                            <div class="flex items-center justify-between text-xs text-gray-600 mb-2">
+                                <span class="text-primary-purple font-bold text-base">$89.70</span>
+                                <div class="flex items-center space-x-1">
+                                    <svg width="16" height="16" viewBox="0 0 36 39" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-accent-yellow">
+                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M18 0C16.987 0 16.0543 0.272093 15.0346 0.729209C14.0484 1.17181 12.9031 1.82302 11.4781 2.63386L8.01544 4.602C6.26567 5.59605 4.86753 6.39237 3.78419 7.17419C2.66567 7.98502 1.80167 8.83758 1.17377 9.99307C0.547535 11.1449 0.266232 12.3929 0.130605 13.8786C-8.73277e-08 15.3207 0 17.0929 0 19.324V19.676C0 21.9071 -8.73277e-08 23.6793 0.130605 25.1214C0.266232 26.6089 0.549209 27.8551 1.17377 29.0069C1.80167 30.1624 2.664 31.015 3.78586 31.8258C4.86586 32.6076 6.26567 33.404 8.01544 34.398L11.4781 36.3661C12.9031 37.177 14.0484 37.8282 15.0346 38.2708C16.056 38.7279 16.987 39 18 39C19.013 39 19.9457 38.7279 20.9654 38.2708C21.9516 37.8282 23.0969 37.177 24.5219 36.3661L27.9846 34.3998C29.7343 33.404 31.1325 32.6076 32.2141 31.8258C33.336 31.015 34.1983 30.1624 34.8262 29.0069C35.4525 27.8551 35.7338 26.6071 35.8694 25.1214C36 23.6793 36 21.9071 36 19.6778V19.3222C36 17.0929 36 15.3207 35.8694 13.8786C35.7338 12.3911 35.4508 11.1449 34.8262 9.99307C34.1983 8.83758 33.336 7.98502 32.2141 7.17419C31.1341 6.39237 29.7343 5.59605 27.9846 4.602L24.5219 2.63386C23.0969 1.82302 21.9516 1.17181 20.9654 0.729209C19.944 0.272093 19.013 0 18 0ZM12.5916 5.07181C14.0819 4.2247 15.1267 3.63335 15.994 3.24516C16.838 2.86605 17.4324 2.72093 18 2.72093C18.5693 2.72093 19.162 2.86605 20.006 3.24516C20.8733 3.63335 21.9165 4.2247 23.4067 5.07181L26.7555 6.97647C28.5807 8.01223 29.8616 8.74326 30.821 9.43619C31.2932 9.77902 31.6633 10.0965 31.9647 10.4157L26.3872 13.436L12.1546 5.32033L12.5916 5.07181ZM9.53581 6.80958L9.24446 6.97647C7.41935 8.01223 6.13842 8.74326 5.18065 9.43619C4.77229 9.72366 4.38943 10.0516 4.03702 10.4157L18 17.9799L23.621 14.9325L9.88074 7.09981C9.75189 7.02416 9.63536 6.92612 9.53581 6.80958ZM2.82642 12.8011C2.7427 13.1893 2.6774 13.63 2.63051 14.1434C2.5133 15.4386 2.51163 17.0766 2.51163 19.393V19.6052C2.51163 21.9234 2.51163 23.5614 2.63051 24.8548C2.74605 26.1191 2.96540 26.9372 3.33879 27.6265C3.71051 28.3104 4.248 28.889 5.18065 29.5638C6.13842 30.2567 7.41935 30.9878 9.24446 32.0235L12.5933 33.9282C14.0835 34.7753 15.1267 35.3667 15.994 35.7548C16.2664 35.877 16.5165 35.9767 16.7442 36.0541V20.3399L2.82642 12.8011ZM19.2558 36.0523C19.4835 35.9761 19.7336 35.877 20.006 35.7548C20.8733 35.3667 21.9165 34.7753 23.4067 33.9282L26.7555 32.0235C28.5807 30.986 29.8616 30.2567 30.821 29.5638C31.752 28.889 32.2895 28.3104 32.6629 27.6265C33.0363 26.9372 33.254 26.1209 33.3695 24.8548C33.4867 23.5614 33.4884 21.9234 33.4884 19.607V19.3948C33.4884 17.0766 33.4884 15.4386 33.3695 14.1452C33.3301 13.6938 33.2646 13.2455 33.1736 12.8029L27.6279 15.805V21.314C27.6279 21.6748 27.4956 22.0208 27.2601 22.2759C27.0246 22.5311 26.7052 22.6744 26.3721 22.6744C26.039 22.6744 25.7196 22.5311 25.4841 22.2759C25.2486 22.0208 25.1163 21.6748 25.1163 21.314V17.1673L19.2558 20.3417V36.0523Z" fill="currentColor"/>
+                                    </svg>
+                                    <span class="text-gray-text text-xs">Unlimited</span>
+                                </div>
+                            </div>
+                            <button class="w-full bg-primary-purple text-white py-2 rounded-md font-semibold text-sm hover:bg-secondary-purple transition-colors flex items-center justify-center">
+                                <i class="fas fa-shopping-cart mr-2"></i>Buy now (Escrow)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Leaderboard Screen Content (from Leaderboard.png) -->
+            <div id="leaderboard-screen" class="hidden">
+                <div class="p-4">
+                    <!-- Back Arrow and Title are handled by dynamic header now -->
+                    <p class="text-gray-text text-center text-sm mb-6">Check your Ranking</p>
+
+                    <!-- Your Ranking Card -->
+                    <div class="bg-card-bg rounded-lg shadow-sm p-4 mb-6 flex items-center justify-between border border-gray-200">
+                        <div class="flex items-center">
+                            <img src="https://placehold.co/40x40/FFC0CB/000000?text=YOU" alt="Your Profile" class="w-10 h-10 rounded-full mr-3">
+                            <div>
+                                <p class="font-semibold text-dark-text">you</p>
+                                <p class="text-xs text-gray-text">rank: #28</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center text-gray-text text-sm">
+                                <svg width="24" height="24" viewBox="0 0 36 39" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 mr-1" style="fill:#EE7435;">
+                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M18 0C16.987 0 16.0543 0.272093 15.0346 0.729209C14.0484 1.17181 12.9031 1.82302 11.4781 2.63386L8.01544 4.602C6.26567 5.59605 4.86753 6.39237 3.78419 7.17419C2.66567 7.98502 1.80167 8.83758 1.17377 9.99307C0.547535 11.1449 0.266232 12.3929 0.130605 13.8786C-8.73277e-08 15.3207 0 17.0929 0 19.324V19.676C0 21.9071 -8.73277e-08 23.6793 0.130605 25.1214C0.266232 26.6089 0.549209 27.8551 1.17377 29.0069C1.80167 30.1624 2.664 31.015 3.78586 31.8258C4.86586 32.6076 6.26567 33.404 8.01544 34.398L11.4781 36.3661C12.9031 37.177 14.0484 37.8282 15.0346 38.2708C16.056 38.7279 16.987 39 18 39C19.013 39 19.9457 38.7279 20.9654 38.2708C21.9516 37.8282 23.0969 37.177 24.5219 36.3661L27.9846 34.3998C29.7343 33.404 31.1325 32.6076 32.2141 31.8258C33.336 31.015 34.1983 30.1624 34.8262 29.0069C35.4525 27.8551 35.7338 26.6071 35.8694 25.1214C36 23.6793 36 21.9071 36 19.6778V19.3222C36 17.0929 36 15.3207 35.8694 13.8786C35.7338 12.3911 35.4508 11.1449 34.8262 9.99307C34.1983 8.83758 33.336 7.98502 32.2141 7.17419C31.1341 6.39237 29.7343 5.59605 27.9846 4.602L24.5219 2.63386C23.0969 1.82302 21.9516 1.17181 20.9654 0.729209C19.944 0.272093 19.013 0 18 0ZM12.5916 5.07181C14.0819 4.2247 15.1267 3.63335 15.994 3.24516C16.838 2.86605 17.4324 2.72093 18 2.72093C18.5693 2.72093 19.162 2.86605 20.006 3.24516C20.8733 3.63335 21.9165 4.2247 23.4067 5.07181L26.7555 6.97647C28.5807 8.01223 29.8616 8.74326 30.821 9.43619C31.2932 9.77902 31.6633 10.0965 31.9647 10.4157L26.3872 13.436L12.1546 5.32033L12.5916 5.07181ZM9.53581 6.80958L9.24446 6.97647C7.41935 8.01223 6.13842 8.74326 5.18065 9.43619C4.77229 9.72366 4.38943 10.0516 4.03702 10.4157L18 17.9799L23.621 14.9325L9.88074 7.09981C9.75189 7.02416 9.63536 6.92612 9.53581 6.80958ZM2.82642 12.8011C2.7427 13.1893 2.6774 13.63 2.63051 14.1434C2.5133 15.4386 2.51163 17.0766 2.51163 19.393V19.6052C2.51163 21.9234 2.51163 23.5614 2.63051 24.8548C2.74605 26.1191 2.96540 26.9372 3.33879 27.6265C3.71051 28.3104 4.248 28.889 5.18065 29.5638C6.13842 30.2567 7.41935 30.9878 9.24446 32.0235L12.5933 33.9282C14.0835 34.7753 15.1267 35.3667 15.994 35.7548C16.2664 35.877 16.5165 35.9767 16.7442 36.0541V20.3399L2.82642 12.8011ZM19.2558 36.0523C19.4835 35.9761 19.7336 35.877 20.006 35.7548C20.8733 35.3667 21.9165 34.7753 23.4067 33.9282L26.7555 32.0235C28.5807 30.986 29.8616 30.2567 30.821 29.5638C31.752 28.889 32.2895 28.3104 32.6629 27.6265C33.0363 26.9372 33.254 26.1209 33.3695 24.8548C33.4867 23.5614 33.4884 21.9234 33.4884 19.607V19.3948C33.4884 17.0766 33.4884 15.4386 33.3695 14.1452C33.3301 13.6938 33.2646 13.2455 33.1736 12.8029L27.6279 15.805V21.314C27.6279 21.6748 27.4956 22.0208 27.2601 22.2759C27.0246 22.5311 26.7052 22.6744 26.3721 22.6744C26.039 22.6744 25.7196 22.5311 25.4841 22.2759C25.2486 22.0208 25.1163 21.6748 25.1163 21.314V17.1673L19.2558 20.3417V36.0523Z" fill="currentColor"/>
+                                </svg>
+                                <span class="text-gray-text text-xs">Unlimited</span>
+                            </div>
+                            <div class="flex items-center text-gray-text text-sm">
+                                <i class="fas fa-star text-accent-yellow mr-1"></i>
+                                <span>3.9</span>
+                            </div>
+                            <i class="fas fa-chevron-down text-gray-400"></i>
+                        </div>
+                    </div>
+
+                    <h3 class="text-xl font-bold text-dark-text mb-4">Top sellers</h3>
+
+                    <!-- Top Sellers List -->
+                    <div class="space-y-4">
+                        <!-- Pascal (Rank 1) -->
+                        <div class="bg-card-bg rounded-lg shadow-sm p-4 flex items-center justify-between border border-gray-200">
+                            <div class="flex items-center">
+                                <i class="fas fa-medal text-rank-gold text-2xl mr-3"></i>
+                                <img src="https://placehold.co/40x40/FFD700/000000?text=P" alt="Pascal's Profile" class="w-10 h-10 rounded-full mr-3">
+                                <div>
+                                    <p class="font-semibold text-dark-text">Pascal</p>
+                                    <p class="text-xs text-gray-text">@official_fastest</p>
+                                    <span class="text-xs text-dark-text bg-gray-200 px-2 py-0.5 rounded-full mt-1 inline-block">Seller</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <div class="flex items-center text-gray-text text-sm">
+                                    <svg width="24" height="24" viewBox="0 0 36 39" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 mr-1" style="fill:#EE7435;">
+                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M18 0C16.987 0 16.0543 0.272093 15.0346 0.729209C14.0484 1.17181 12.9031 1.82302 11.4781 2.63386L8.01544 4.602C6.26567 5.59605 4.86753 6.39237 3.78419 7.17419C2.66567 7.98502 1.80167 8.83758 1.17377 9.99307C0.547535 11.1449 0.266232 12.3929 0.130605 13.8786C-8.73277e-08 15.3207 0 17.0929 0 19.324V19.676C0 21.9071 -8.73277e-08 23.6793 0.130605 25.1214C0.266232 26.6089 0.549209 27.8551 1.17377 29.0069C1.80167 30.1624 2.664 31.015 3.78586 31.8258C4.86586 32.6076 6.26567 33.404 8.01544 34.398L11.4781 36.3661C12.9031 37.177 14.0484 37.8282 15.0346 38.2708C16.056 38.7279 16.987 39 18 39C19.013 39 19.9457 38.7279 20.9654 38.2708C21.9516 37.8282 23.0969 37.177 24.5219 36.3661L27.9846 34.3998C29.7343 33.404 31.1325 32.6076 32.2141 31.8258C33.336 31.015 34.1983 30.1624 34.8262 29.0069C35.4525 27.8551 35.7338 26.6071 35.8694 25.1214C36 23.6793 36 21.9071 36 19.6778V19.3222C36 17.0929 36 15.3207 35.8694 13.8786C35.7338 12.3911 35.4508 11.1449 34.8262 9.99307C34.1983 8.83758 33.336 7.98502 32.2141 7.17419C31.1341 6.39237 29.7343 5.59605 27.9846 4.602L24.5219 2.63386C23.0969 1.82302 21.9516 1.17181 20.9654 0.729209C19.944 0.272093 19.013 0 18 0ZM12.5916 5.07181C14.0819 4.2247 15.1267 3.63335 15.994 3.24516C16.838 2.86605 17.4324 2.72093 18 2.72093C18.5693 2.72093 19.162 2.86605 20.006 3.24516C20.8733 3.63335 21.9165 4.2247 23.4067 5.07181L26.7555 6.97647C28.5807 8.01223 29.8616 8.74326 30.821 9.43619C31.2932 9.77902 31.6633 10.0965 31.9647 10.4157L26.3872 13.436L12.1546 5.32033L12.5916 5.07181ZM9.53581 6.80958L9.24446 6.97647C7.41935 8.01223 6.13842 8.74326 5.18065 9.43619C4.77229 9.72366 4.38943 10.0516 4.03702 10.4157L18 17.9799L23.621 14.9325L9.88074 7.09981C9.75189 7.02416 9.63536 6.92612 9.53581 6.80958ZM2.82642 12.8011C2.7427 13.1893 2.6774 13.63 2.63051 14.1434C2.5133 15.4386 2.51163 17.0766 2.51163 19.393V19.6052C2.51163 21.9234 2.51163 23.5614 2.63051 24.8548C2.74605 26.1191 2.96540 26.9372 3.33879 27.6265C3.71051 28.3104 4.248 28.889 5.18065 29.5638C6.13842 30.2567 7.41935 30.9878 9.24446 32.0235L12.5933 33.9282C14.0835 34.7753 15.1267 35.3667 15.994 35.7548C16.2664 35.877 16.5165 35.9767 16.7442 36.0541V20.3399L2.82642 12.8011ZM19.2558 36.0523C19.4835 35.9761 19.7336 35.877 20.006 35.7548C20.8733 35.3667 21.9165 34.7753 23.4067 33.9282L26.7555 32.0235C28.5807 30.986 29.8616 30.2567 30.821 29.5638C31.752 28.889 32.2895 28.3104 32.6629 27.6265C33.0363 26.9372 33.254 26.1209 33.3695 24.8548C33.4867 23.5614 33.4884 21.9234 33.4884 19.607V19.3948C33.4884 17.0766 33.4884 15.4386 33.3695 14.1452C33.3301 13.6938 33.2646 13.2455 33.1736 12.8029L27.6279 15.805V21.314C27.6279 21.6748 27.4956 22.0208 27.2601 22.2759C27.0246 22.5311 26.7052 22.6744 26.3721 22.6744C26.039 22.6744 25.7196 22.5311 25.4841 22.2759C25.2486 22.0208 25.1163 21.6748 25.1163 21.314V17.1673L19.2558 20.3417V36.0523Z" fill="#EE7435"/>
+                                    </svg>
+                                    <span>89</span>
+                                </div>
+                                <div class="flex items-center text-gray-text text-sm">
+                                    <i class="fas fa-star text-accent-yellow mr-1"></i>
+                                    <span>4.9</span>
+                                </div>
+                                <i class="fas fa-chevron-up text-accent-green"></i>
+                            </div>
+                        </div>
+
+                        <!-- Timothy (Rank 2) -->
+                        <div class="bg-card-bg rounded-lg shadow-sm p-4 flex items-center justify-between border border-gray-200">
+                            <div class="flex items-center">
+                                <i class="fas fa-medal text-rank-silver text-2xl mr-3"></i>
+                                <img src="https://placehold.co/40x40/C0C0C0/000000?text=T" alt="Timothy's Profile" class="w-10 h-10 rounded-full mr-3">
+                                <div>
+                                    <p class="font-semibold text-dark-text">Timothy</p>
+                                    <p class="text-xs text-gray-text">@loopymines</p>
+                                    <span class="text-xs text-dark-text bg-gray-200 px-2 py-0.5 rounded-full mt-1 inline-block">Both</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <div class="flex items-center text-gray-text text-sm">
+                                    <svg width="24" height="24" viewBox="0 0 36 39" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 mr-1" style="fill:#EE7435;">
+                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M18 0C16.987 0 16.0543 0.272093 15.0346 0.729209C14.0484 1.17181 12.9031 1.82302 11.4781 2.63386L8.01544 4.602C6.26567 5.59605 4.86753 6.39237 3.78419 7.17419C2.66567 7.98502 1.80167 8.83758 1.17377 9.99307C0.547535 11.1449 0.266232 12.3929 0.130605 13.8786C-8.73277e-08 15.3207 0 17.0929 0 19.324V19.676C0 21.9071 -8.73277e-08 23.6793 0.130605 25.1214C0.266232 26.6089 0.549209 27.8551 1.17377 29.0069C1.80167 30.1624 2.664 31.015 3.78586 31.8258C4.86586 32.6076 6.26567 33.404 8.01544 34.398L11.4781 36.3661C12.9031 37.177 14.0484 37.8282 15.0346 38.2708C16.056 38.7279 16.987 39 18 39C19.013 39 19.9457 38.7279 20.9654 38.2708C21.9516 37.8282 23.0969 37.177 24.5219 36.3661L27.9846 34.3998C29.7343 33.404 31.1325 32.6076 32.2141 31.8258C33.336 31.015 34.1983 30.1624 34.8262 29.0069C35.4525 27.8551 35.7338 26.6071 35.8694 25.1214C36 23.6793 36 21.9071 36 19.6778V19.3222C36 17.0929 36 15.3207 35.8694 13.8786C35.7338 12.3911 35.4508 11.1449 34.8262 9.99307C34.1983 8.83758 33.336 7.98502 32.2141 7.17419C31.1341 6.39237 29.7343 5.59605 27.9846 4.602L24.5219 2.63386C23.0969 1.82302 21.9516 1.17181 20.9654 0.729209C19.944 0.272093 19.013 0 18 0ZM12.5916 5.07181C14.0819 4.2247 15.1267 3.63335 15.994 3.24516C16.838 2.86605 17.4324 2.72093 18 2.72093C18.5693 2.72093 19.162 2.86605 20.006 3.24516C20.8733 3.63335 21.9165 4.2247 23.4067 5.07181L26.7555 6.97647C28.5807 8.01223 29.8616 8.74326 30.821 9.43619C31.2932 9.77902 31.6633 10.0965 31.9647 10.4157L26.3872 13.436L12.1546 5.32033L12.5916 5.07181ZM9.53581 6.80958L9.24446 6.97647C7.41935 8.01223 6.13842 8.74326 5.18065 9.43619C4.77229 9.72366 4.38943 10.0516 4.03702 10.4157L18 17.9799L23.621 14.9325L9.88074 7.09981C9.75189 7.02416 9.63536 6.92612 9.53581 6.80958ZM2.82642 12.8011C2.7427 13.1893 2.6774 13.63 2.63051 14.1434C2.5133 15.4386 2.51163 17.0766 2.51163 19.393V19.6052C2.51163 21.9234 2.51163 23.5614 2.63051 24.8548C2.74605 26.1191 2.96540 26.9372 3.33879 27.6265C3.71051 28.3104 4.248 28.889 5.18065 29.5638C6.13842 30.2567 7.41935 30.9878 9.24446 32.0235L12.5933 33.9282C14.0835 34.7753 15.1267 35.3667 15.994 35.7548C16.2664 35.877 16.5165 35.9767 16.7442 36.0541V20.3399L2.82642 12.8011ZM19.2558 36.0523C19.4835 35.9761 19.7336 35.877 20.006 35.7548C20.8733 35.3667 21.9165 34.7753 23.4067 33.9282L26.7555 32.0235C28.5807 30.986 29.8616 30.2567 30.821 29.5638C31.752 28.889 32.2895 28.3104 32.6629 27.6265C33.0363 26.9372 33.254 26.1209 33.3695 24.8548C33.4867 23.5614 33.4884 21.9234 33.4884 19.607V19.3948C33.4884 17.0766 33.4884 15.4386 33.3695 14.1452C33.3301 13.6938 33.2646 13.2455 33.1736 12.8029L27.6279 15.805V21.314C27.6279 21.6748 27.4956 22.0208 27.2601 22.2759C27.0246 22.5311 26.7052 22.6744 26.3721 22.6744C26.039 22.6744 25.7196 22.5311 25.4841 22.2759C25.2486 22.0208 25.1163 21.6748 25.1163 21.314V17.1673L19.2558 20.3417V36.0523Z" fill="#EE7435"/>
+                                    </svg>
+                                    <span>64</span>
+                                </div>
+                                <div class="flex items-center text-gray-text text-sm">
+                                    <i class="fas fa-star text-accent-yellow mr-1"></i>
+                                    <span>4.8</span>
+                                </div>
+                                <i class="fas fa-chevron-up text-accent-green"></i>
+                            </div>
+                        </div>
+
+                        <!-- Kaspa (Rank 3) -->
+                        <div class="bg-card-bg rounded-lg shadow-sm p-4 flex items-center justify-between border border-gray-200">
+                            <div class="flex items-center">
+                                <i class="fas fa-medal text-rank-bronze text-2xl mr-3"></i>
+                                <img src="https://placehold.co/40x40/CD7F32/000000?text=K" alt="Kaspa's Profile" class="w-10 h-10 rounded-full mr-3">
+                                <div>
+                                    <p class="font-semibold text-dark-text">Kaspa</p>
+                                    <p class="text-xs text-gray-text">@ld0care</p>
+                                    <span class="text-xs text-dark-text bg-gray-200 px-2 py-0.5 rounded-full mt-1 inline-block">Both</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <div class="flex items-center text-gray-text text-sm">
+                                    <svg width="24" height="24" viewBox="0 0 36 39" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 mr-1" style="fill:#EE7435;">
+                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M18 0C16.987 0 16.0543 0.272093 15.0346 0.729209C14.0484 1.17181 12.9031 1.82302 11.4781 2.63386L8.01544 4.602C6.26567 5.59605 4.86753 6.39237 3.78419 7.17419C2.66567 7.98502 1.80167 8.83758 1.17377 9.99307C0.547535 11.1449 0.266232 12.3929 0.130605 13.8786C-8.73277e-08 15.3207 0 17.0929 0 19.324V19.676C0 21.9071 -8.73277e-08 23.6793 0.130605 25.1214C0.266232 26.6089 0.549209 27.8551 1.17377 29.0069C1.80167 30.1624 2.664 31.015 3.78586 31.8258C4.86586 32.6076 6.26567 33.404 8.01544 34.398L11.4781 36.3661C12.9031 37.177 14.0484 37.8282 15.0346 38.2708C16.056 38.7279 16.987 39 18 39C19.013 39 19.9457 38.7279 20.9654 38.2708C21.9516 37.8282 23.0969 37.177 24.5219 36.3661L27.9846 34.3998C29.7343 33.404 31.1325 32.6076 32.2141 31.8258C33.336 31.015 34.1983 30.1624 34.8262 29.0069C35.4525 27.8551 35.7338 26.6071 35.8694 25.1214C36 23.6793 36 21.9071 36 19.6778V19.3222C36 17.0929 36 15.3207 35.8694 13.8786C35.7338 12.3911 35.4508 11.1449 34.8262 9.99307C34.1983 8.83758 33.336 7.98502 32.2141 7.17419C31.1341 6.39237 29.7343 5.59605 27.9846 4.602L24.5219 2.63386C23.0969 1.82302 21.9516 1.17181 20.9654 0.729209C19.944 0.272093 19.013 0 18 0ZM12.5916 5.07181C14.0819 4.2247 15.1267 3.63335 15.994 3.24516C16.838 2.86605 17.4324 2.72093 18 2.72093C18.5693 2.72093 19.162 2.86605 20.006 3.24516C20.8733 3.63335 21.9165 4.2247 23.4067 5.07181L26.7555 6.97647C28.5807 8.01223 29.8616 8.74326 30.821 9.43619C31.2932 9.77902 31.6633 10.0965 31.9647 10.4157L26.3872 13.436L12.1546 5.32033L12.5916 5.07181ZM9.53581 6.80958L9.24446 6.97647C7.41935 8.01223 6.13842 8.74326 5.18065 9.43619C4.77229 9.72366 4.38943 10.0516 4.03702 10.4157L18 17.9799L23.621 14.9325L9.88074 7.09981C9.75189 7.02416 9.63536 6.92612 9.53581 6.80958ZM2.82642 12.8011C2.7427 13.1893 2.6774 13.63 2.63051 14.1434C2.5133 15.4386 2.51163 17.0766 2.51163 19.393V19.6052C2.51163 21.9234 2.51163 23.5614 2.63051 24.8548C2.74605 26.1191 2.96540 26.9372 3.33879 27.6265C3.71051 28.3104 4.248 28.889 5.18065 29.5638C6.13842 30.2567 7.41935 30.9878 9.24446 32.0235L12.5933 33.9282C14.0835 34.7753 15.1267 35.3667 15.994 35.7548C16.2664 35.877 16.5165 35.9767 16.7442 36.0541V20.3399L2.82642 12.8011ZM19.2558 36.0523C19.4835 35.9761 19.7336 35.877 20.006 35.7548C20.8733 35.3667 21.9165 34.7753 23.4067 33.9282L26.7555 32.0235C28.5807 30.986 29.8616 30.2567 30.821 29.5638C31.752 28.889 32.2895 28.3104 32.6629 27.6265C33.0363 26.9372 33.254 26.1209 33.3695 24.8548C33.4867 23.5614 33.4884 21.9234 33.4884 19.607V19.3948C33.4884 17.0766 33.4884 15.4386 33.3695 14.1452C33.3301 13.6938 33.2646 13.2455 33.1736 12.8029L27.6279 15.805V21.314C27.6279 21.6748 27.4956 22.0208 27.2601 22.2759C27.0246 22.5311 26.7052 22.6744 26.3721 22.6744C26.039 22.6744 25.7196 22.5311 25.4841 22.2759C25.2486 22.0208 25.1163 21.6748 25.1163 21.314V17.1673L19.2558 20.3417V36.0523Z" fill="#EE7435"/>
+                                    </svg>
+                                    <span>49</span>
+                                </div>
+                                <div class="flex items-center text-gray-text text-sm">
+                                    <i class="fas fa-star text-accent-yellow mr-1"></i>
+                                    <span>4.7</span>
+                                </div>
+                                <i class="fas fa-chevron-up text-accent-green"></i>
+                            </div>
+                        </div>
+
+                        <!-- Lionel (Rank 5) -->
+                        <div class="bg-card-bg rounded-lg shadow-sm p-4 flex items-center justify-between border border-gray-200">
+                            <div class="flex items-center">
+                                <span class="text-lg font-bold text-gray-700 w-8 text-center mr-3">5</span>
+                                <img src="https://placehold.co/40x40/cccccc/000000?text=L" alt="Lionel's Profile" class="w-10 h-10 rounded-full mr-3">
+                                <div>
+                                    <p class="font-semibold text-dark-text">Lionel</p>
+                                    <p class="text-xs text-gray-text">@Pableo</p>
+                                    <span class="text-xs text-dark-text bg-gray-200 px-2 py-0.5 rounded-full mt-1 inline-block">Seller</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <div class="flex items-center text-gray-text text-sm">
+                                    <svg width="24" height="24" viewBox="0 0 36 39" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 mr-1" style="fill:#EE7435;">
+                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M18 0C16.987 0 16.0543 0.272093 15.0346 0.729209C14.0484 1.17181 12.9031 1.82302 11.4781 2.63386L8.01544 4.602C6.26567 5.59605 4.86753 6.39237 3.78419 7.17419C2.66567 7.98502 1.80167 8.83758 1.17377 9.99307C0.547535 11.1449 0.266232 12.3929 0.130605 13.8786C-8.73277e-08 15.3207 0 17.0929 0 19.324V19.676C0 21.9071 -8.73277e-08 23.6793 0.130605 25.1214C0.266232 26.6089 0.549209 27.8551 1.17377 29.0069C1.80167 30.1624 2.664 31.015 3.78586 31.8258C4.86586 32.6076 6.26567 33.404 8.01544 34.398L11.4781 36.3661C12.9031 37.177 14.0484 37.8282 15.0346 38.2708C16.056 38.7279 16.987 39 18 39C19.013 39 19.9457 38.7279 20.9654 38.2708C21.9516 37.8282 23.0969 37.177 24.5219 36.3661L27.9846 34.3998C29.7343 33.404 31.1325 32.6076 32.2141 31.8258C33.336 31.015 34.1983 30.1624 34.8262 29.0069C35.4525 27.8551 35.7338 26.6071 35.8694 25.1214C36 23.6793 36 21.9071 36 19.6778V19.3222C36 17.0929 36 15.3207 35.8694 13.8786C35.7338 12.3911 35.4508 11.1449 34.8262 9.99307C34.1983 8.83758 33.336 7.98502 32.2141 7.17419C31.1341 6.39237 29.7343 5.59605 27.9846 4.602L24.5219 2.63386C23.0969 1.82302 21.9516 1.17181 20.9654 0.729209C19.944 0.272093 19.013 0 18 0ZM12.5916 5.07181C14.0819 4.2247 15.1267 3.63335 15.994 3.24516C16.838 2.86605 17.4324 2.72093 18 2.72093C18.5693 2.72093 19.162 2.86605 20.006 3.24516C20.8733 3.63335 21.9165 4.2247 23.4067 5.07181L26.7555 6.97647C28.5807 8.01223 29.8616 8.74326 30.821 9.43619C31.2932 9.77902 31.6633 10.0965 31.9647 10.4157L26.3872 13.436L12.1546 5.32033L12.5916 5.07181ZM9.53581 6.80958L9.24446 6.97647C7.41935 8.01223 6.13842 8.74326 5.18065 9.43619C4.77229 9.72366 4.38943 10.0516 4.03702 10.4157L18 17.9799L23.621 14.9325L9.88074 7.09981C9.75189 7.02416 9.63536 6.92612 9.53581 6.80958ZM2.82642 12.8011C2.7427 13.1893 2.6774 13.63 2.63051 14.1434C2.5133 15.4386 2.51163 17.0766 2.51163 19.393V19.6052C2.51163 21.9234 2.51163 23.5614 2.63051 24.8548C2.74605 26.1191 2.96540 26.9372 3.33879 27.6265C3.71051 28.3104 4.248 28.889 5.18065 29.5638C6.13842 30.2567 7.41935 30.9878 9.24446 32.0235L12.5933 33.9282C14.0835 34.7753 15.1267 35.3667 15.994 35.7548C16.2664 35.877 16.5165 35.9767 16.7442 36.0541V20.3399L2.82642 12.8011ZM19.2558 36.0523C19.4835 35.9761 19.7336 35.877 20.006 35.7548C20.8733 35.3667 21.9165 34.7753 23.4067 33.9282L26.7555 32.0235C28.5807 30.986 29.8616 30.2567 30.821 29.5638C31.752 28.889 32.2895 28.3104 32.6629 27.6265C33.0363 26.9372 33.254 26.1209 33.3695 24.8548C33.4867 23.5614 33.4884 21.9234 33.4884 19.607V19.3948C33.4884 17.0766 33.4884 15.4386 33.3695 14.1452C33.3301 13.6938 33.2646 13.2455 33.1736 12.8029L27.6279 15.805V21.314C27.6279 21.6748 27.4956 22.0208 27.2601 22.2759C27.0246 22.5311 26.7052 22.6744 26.3721 22.6744C26.039 22.6744 25.7196 22.5311 25.4841 22.2759C25.2486 22.0208 25.1163 21.6748 25.1163 21.314V17.1673L19.2558 20.3417V36.0523Z" fill="#EE7435"/>
+                                    </svg>
+                                    <span>49</span>
+                                </div>
+                                <div class="flex items-center text-gray-text text-sm">
+                                    <i class="fas fa-star text-accent-yellow mr-1"></i>
+                                    <span>4.6</span>
+                                </div>
+                                <i class="fas fa-chevron-up text-accent-green"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="text-xs text-center text-gray-text mt-6">Rankings update monthly • Based on sales and referrals</p>
+                </div>
+            </div>
+
+            <!-- Notification Screen -->
+            <div id="notification-screen" class="p-4 hidden">
+                <div class="space-y-4">
+                    <div class="bg-card-bg rounded-lg shadow-sm p-4 flex items-start border border-gray-200">
+                        <i class="fas fa-bell text-primary-purple text-xl mt-1 mr-3"></i>
+                        <div>
+                            <p class="font-semibold text-dark-text">New Order Received!</p>
+                            <p class="text-sm text-gray-text">You have a new order for "Gaming Laptop - RTX 4080".</p>
+                            <span class="text-xs text-gray-500 mt-1 block">2 hours ago</span>
+                        </div>
+                    </div>
+                    <div class="bg-card-bg rounded-lg shadow-sm p-4 flex items-start border border-gray-200">
+                        <i class="fas fa-check-circle text-accent-green text-xl mt-1 mr-3"></i>
+                        <div>
+                            <p class="font-semibold text-dark-text">Dispute Resolution Update</p>
+                            <p class="text-sm text-gray-text">Your dispute for "Designer Handbag" has been reviewed.</p>
+                            <span class="text-xs text-gray-500 mt-1 block">1 day ago</span>
+                        </div>
+                    </div>
+                    <div class="bg-card-bg rounded-lg shadow-sm p-4 flex items-start border border-gray-200">
+                        <i class="fas fa-star text-accent-yellow text-xl mt-1 mr-3"></i>
+                        <div>
+                            <p class="font-semibold text-dark-text">New Review!</p>
+                            <p class="text-sm text-gray-text">You received a 5-star rating on "Vintage Crypto Poster".</p>
+                            <span class="text-xs text-gray-500 mt-1 block">3 days ago</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Screen Content (from Profile.png and Group 3.png) -->
+            <div id="profile-screen" class="hidden">
+                <div class="p-4">
+                    <!-- Profile Header Background (Purple bar from Profile.png) -->
+                    <div class="relative bg-primary-purple h-24 -mx-4 -mt-4 mb-16">
+                        <!-- Top right icons (camera and share) from Profile.png -->
+                        <div class="absolute top-4 right-4 flex space-x-3">
+                            <i class="fas fa-camera text-white text-lg"></i>
+                            <i class="fas fa-share-nodes text-white text-lg"></i>
+                        </div>
+                        <!-- Profile Image (centered below header) -->
+                        <!-- Adjusted top and transform for better positioning matching the image -->
+                        <img src="https://placehold.co/100x100/EADDFF/6F00FF?text=AT" alt="User Profile Picture" class="absolute left-1/2 -translate-x-1/2 top-[calc(100%-56px)] w-28 h-28 rounded-full border-4 border-white object-cover shadow-md">
+                    </div>
+
+                    <!-- Adjusted text alignment from center to left, and adjusted top margin -->
+                    <div class="text-left mt-8 mb-6 pl-4">
+                        <h2 class="text-2xl font-bold text-dark-text">Kaspa Thompson</h2>
+                        <p class="text-gray-text">@ld0care</p>
+                        <p class="text-sm text-gray-text mt-1">120 followers</p>
+                    </div>
+
+                    <!-- Badges Section - Adjusted alignment -->
+                    <div class="mb-6 text-left pl-4">
+                        <h3 class="text-sm font-semibold text-gray-700 mb-2">BADGES</h3>
+                        <div class="flex justify-start space-x-2">
+                            <span class="bg-gray-200 text-dark-text text-xs font-semibold px-3 py-1 rounded-full">Both</span>
+                            <span class="bg-verified-green text-white text-xs font-semibold px-3 py-1 rounded-full flex items-center">
+                                <i class="fas fa-check-circle mr-1 text-white text-xs"></i>Verified
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Summary Stats Section - Icons and colors adjusted -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-dark-text mb-4 pl-4">Summary Stats</h3>
+                        <div class="grid grid-cols-2 gap-4 px-4">
+                            <!-- Items Sold -->
+                            <div class="bg-card-bg rounded-lg shadow-sm p-4 flex flex-col items-center border border-gray-200">
+                                <!-- SVG for Items Sold - fill color changed to profile-orange-icon -->
+                                <svg width="36" height="39" viewBox="0 0 36 39" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 mb-2" style="fill:var(--profile-orange-icon);">
+                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M18 0C16.987 0 16.0543 0.272093 15.0346 0.729209C14.0484 1.17181 12.9031 1.82302 11.4781 2.63386L8.01544 4.602C6.26567 5.59605 4.86753 6.39237 3.78419 7.17419C2.66567 7.98502 1.80167 8.83758 1.17377 9.99307C0.547535 11.1449 0.266232 12.3929 0.130605 13.8786C-8.73277e-08 15.3207 0 17.0929 0 19.324V19.676C0 21.9071 -8.73277e-08 23.6793 0.130605 25.1214C0.266232 26.6089 0.549209 27.8551 1.17377 29.0069C1.80167 30.1624 2.664 31.015 3.78586 31.8258C4.86586 32.6076 6.26567 33.404 8.01544 34.398L11.4781 36.3661C12.9031 37.177 14.0484 37.8282 15.0346 38.2708C16.056 38.7279 16.987 39 18 39C19.013 39 19.9457 38.7279 20.9654 38.2708C21.9516 37.8282 23.0969 37.177 24.5219 36.3661L27.9846 34.3998C29.7343 33.404 31.1325 32.6076 32.2141 31.8258C33.336 31.015 34.1983 30.1624 34.8262 29.0069C35.4525 27.8551 35.7338 26.6071 35.8694 25.1214C36 23.6793 36 21.9071 36 19.6778V19.3222C36 17.0929 36 15.3207 35.8694 13.8786C35.7338 12.3911 35.4508 11.1449 34.8262 9.99307C34.1983 8.83758 33.336 7.98502 32.2141 7.17419C31.1341 6.39237 29.7343 5.59605 27.9846 4.602L24.5219 2.63386C23.0969 1.82302 21.9516 1.17181 20.9654 0.729209C19.944 0.272093 19.013 0 18 0ZM12.5916 5.07181C14.0819 4.2247 15.1267 3.63335 15.994 3.24516C16.838 2.86605 17.4324 2.72093 18 2.72093C18.5693 2.72093 19.162 2.86605 20.006 3.24516C20.8733 3.63335 21.9165 4.2247 23.4067 5.07181L26.7555 6.97647C28.5807 8.01223 29.8616 8.74326 30.821 9.43619C31.2932 9.77902 31.6633 10.0965 31.9647 10.4157L26.3872 13.436L12.1546 5.32033L12.5916 5.07181ZM9.53581 6.80958L9.24446 6.97647C7.41935 8.01223 6.13842 8.74326 5.18065 9.43619C4.77229 9.72366 4.38943 10.0516 4.03702 10.4157L18 17.9799L23.621 14.9325L9.88074 7.09981C9.75189 7.02416 9.63536 6.92612 9.53581 6.80958ZM2.82642 12.8011C2.7427 13.1893 2.6774 13.63 2.63051 14.1434C2.5133 15.4386 2.51163 17.0766 2.51163 19.393V19.6052C2.51163 21.9234 2.51163 23.5614 2.63051 24.8548C2.74605 26.1191 2.96540 26.9372 3.33879 27.6265C3.71051 28.3104 4.248 28.889 5.18065 29.5638C6.13842 30.2567 7.41935 30.9878 9.24446 32.0235L12.5933 33.9282C14.0835 34.7753 15.1267 35.3667 15.994 35.7548C16.2664 35.877 16.5165 35.9767 16.7442 36.0541V20.3399L2.82642 12.8011ZM19.2558 36.0523C19.4835 35.9761 19.7336 35.877 20.006 35.7548C20.8733 35.3667 21.9165 34.7753 23.4067 33.9282L26.7555 32.0235C28.5807 30.986 29.8616 30.2567 30.821 29.5638C31.752 28.889 32.2895 28.3104 32.6629 27.6265C33.0363 26.9372 33.254 26.1209 33.3695 24.8548C33.4867 23.5614 33.4884 21.9234 33.4884 19.607V19.3948C33.4884 17.0766 33.4884 15.4386 33.3695 14.1452C33.3301 13.6938 33.2646 13.2455 33.1736 12.8029L27.6279 15.805V21.314C27.6279 21.6748 27.4956 22.0208 27.2601 22.2759C27.0246 22.5311 26.7052 22.6744 26.3721 22.6744C26.039 22.6744 25.7196 22.5311 25.4841 22.2759C25.2486 22.0208 25.1163 21.6748 25.1163 21.314V17.1673L19.2558 20.3417V36.0523Z" fill="var(--profile-orange-icon)"/>
+                                </svg>
+                                <p class="text-dark-text font-bold text-xl">24</p>
+                                <p class="text-gray-text text-sm">Items Sold</p>
+                            </div>
+                            <!-- Items Bought - Icon color changed to verified-green -->
+                            <div class="bg-card-bg rounded-lg shadow-sm p-4 flex flex-col items-center border border-gray-200">
+                                <i class="fas fa-shopping-bag text-verified-green text-2xl mb-2"></i>
+                                <p class="text-dark-text font-bold text-xl">12</p>
+                                <p class="text-gray-text text-sm">Items Bought</p>
+                            </div>
+                            <!-- Rating -->
+                            <div class="bg-card-bg rounded-lg shadow-sm p-4 flex flex-col items-center border border-gray-200">
+                                <i class="fas fa-star text-accent-yellow text-2xl mb-2"></i>
+                                <p class="text-dark-text font-bold text-xl">4.8</p>
+                                <p class="text-gray-text text-sm">Rating</p>
+                            </div>
+                            <!-- Referrals -->
+                            <div class="bg-card-bg rounded-lg shadow-sm p-4 flex flex-col items-center border border-gray-200">
+                                <i class="fas fa-user-friends text-primary-purple text-2xl mb-2"></i>
+                                <p class="text-dark-text font-bold text-xl">8</p>
+                                <p class="text-gray-text text-sm">Referrals</p>
+                            </div >
+                        </div>
+                    </div>
+
+                    <!-- Reviews Section - Date and Verified Purchase styling adjusted -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-dark-text mb-4 pl-4">Reviews (3)</h3>
+                        <div class="space-y-4 px-4">
+                            <!-- Review 1 (Sarah Chen) -->
+                            <div class="bg-card-bg rounded-lg shadow-sm p-4 flex flex-col border border-gray-200">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center">
+                                        <img src="https://placehold.co/40x40/FFC0CB/000000?text=SC" alt="Sarah Chen Profile" class="w-10 h-10 rounded-full mr-3">
+                                        <div>
+                                            <p class="font-semibold text-dark-text">Sarah Chen</p>
+                                            <p class="text-xs text-gray-text">@sarahweb3</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <!-- Stars are now part of this flex container -->
+                                        <i class="fas fa-star text-accent-yellow text-sm"></i>
+                                        <i class="fas fa-star text-accent-yellow text-sm"></i>
+                                        <i class="fas fa-star text-accent-yellow text-sm"></i>
+                                        <i class="fas fa-star text-accent-yellow text-sm"></i>
+                                        <i class="fas fa-star text-accent-yellow text-sm"></i>
+                                        <!-- Date moved here -->
+                                        <span class="ml-2 text-gray-text text-xs">16-07-2025</span>
+                                    </div>
+                                </div>
+                                <span class="bg-gray-200 text-dark-text text-xs font-semibold px-2 py-0.5 rounded-full self-start mb-2">Vintage Crypto Poster</span>
+                                <p class="text-sm text-gray-700">Amazing seller! Item was exactly as described and shipped super fast. Highly recommended</p>
+                                <!-- Verified Purchase styling improved -->
+                                <div class="flex items-center mt-2 text-verified-green text-xs font-semibold">
+                                    <i class="fas fa-check-circle mr-1"></i>Verified Purchase
+                                </div>
+                            </div>
+                            <!-- Review 2 (Mike Rodriguez) -->
+                            <div class="bg-card-bg rounded-lg shadow-sm p-4 flex flex-col border border-gray-200">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center">
+                                        <img src="https://placehold.co/40x40/B0E0E6/000000?text=MR" alt="Mike Rodriguez Profile" class="w-10 h-10 rounded-full mr-3">
+                                        <div>
+                                            <p class="font-semibold text-dark-text">Mike Rodriguez</p>
+                                            <p class="text-xs text-gray-text">@mikecollector</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <!-- Stars are now part of this flex container -->
+                                        <i class="fas fa-star text-accent-yellow text-sm"></i>
+                                        <i class="fas fa-star text-accent-yellow text-sm"></i>
+                                        <i class="fas fa-star text-accent-yellow text-sm"></i>
+                                        <i class="fas fa-star text-accent-yellow text-sm"></i>
+                                        <i class="far fa-star text-gray-400 text-sm"></i> <!-- Empty star -->
+                                        <!-- Date moved here -->
+                                        <span class="ml-2 text-gray-text text-xs">12-06-2025</span>
+                                    </div>
+                                </div>
+                                <span class="bg-gray-200 text-dark-text text-xs font-semibold px-2 py-0.5 rounded-full self-start mb-2">NFT Sticker Pack</span>
+                                <p class="text-sm text-gray-700">Good transaction overall. Item condition was great. Packaging could be better</p>
+                                <!-- Verified Purchase styling improved -->
+                                <div class="flex items-center mt-2 text-verified-green text-xs font-semibold">
+                                    <i class="fas fa-check-circle mr-1"></i>Verified Purchase
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- List New Product Screen -->
+            <div id="list-product-screen" class="hidden">
+                <div class="p-4">
+                    <form class="space-y-6" id="list-product-form">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Product Images (Max 3)</label>
+                            <div class="flex space-x-4">
+                                <!-- Image Upload Placeholder 1 -->
+                                <label class="flex-1 h-32 flex flex-col items-center justify-center rounded-lg image-upload-placeholder">
+                                    <input type="file" class="hidden" accept="image/*" multiple>
+                                    <i class="fas fa-upload text-primary-purple text-2xl mb-2"></i>
+                                    <span class="text-gray-text text-sm">Add Image</span>
+                                </label>
+                                <!-- Image Upload Placeholder 2 -->
+                                <label class="flex-1 h-32 flex flex-col items-center justify-center rounded-lg image-upload-placeholder">
+                                    <input type="file" class="hidden" accept="image/*" multiple>
+                                    <i class="fas fa-upload text-primary-purple text-2xl mb-2"></i>
+                                    <span class="text-gray-text text-sm">Add Image</span>
+                                </label>
+                                <!-- Image Upload Placeholder 3 -->
+                                <label class="flex-1 h-32 flex flex-col items-center justify-center rounded-lg image-upload-placeholder">
+                                    <input type="file" class="hidden" accept="image/*" multiple>
+                                    <i class="fas fa-upload text-primary-purple text-2xl mb-2"></i>
+                                    <span class="text-gray-text text-sm">Add Image</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="product-title" class="block text-sm font-medium text-gray-700">Product Title*</label>
+                            <input type="text" id="product-title" placeholder="iPhone 15 Pro Max - Like New" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-purple focus:border-primary-purple">
+                        </div>
+
+                        <div>
+                            <label for="product-description" class="block text-sm font-medium text-gray-700">Description*</label>
+                            <textarea id="product-description" rows="4" placeholder="Detailed description of your product, condition, specifications..." class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-purple focus:border-primary-purple"></textarea>
+                        </div>
+
+                        <div>
+                            <label for="product-price" class="block text-sm font-medium text-gray-700">Price (USD)*</label>
+                            <input type="number" id="product-price" placeholder="999" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-purple focus:border-primary-purple">
+                        </div>
+
+                        <div>
+                            <label for="country-of-origin" class="block text-sm font-medium text-gray-700">Country of Origin*</label>
+                            <input type="text" id="country-of-origin" placeholder="United States" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-purple focus:border-primary-purple">
+                        </div>
+
+                        <div>
+                            <label for="delivery-details" class="block text-sm font-medium text-gray-700">Delivery Details (Optional)</label>
+                            <textarea id="delivery-details" rows="3" placeholder="Shipping method, estimated delivery time, special instructions..." class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-purple focus:border-primary-purple"></textarea>
+                        </div>
+
+                        <button type="submit" class="w-full bg-primary-purple text-white py-3 rounded-md font-semibold text-lg hover:bg-secondary-purple transition-colors">
+                            Publish Listing
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Order Management Screen -->
+            <div id="order-management-screen" class="hidden">
+                <div class="p-4">
+                    <div class="relative mb-6">
+                        <input type="text" placeholder="Search orders..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-purple">
+                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    </div>
+
+                    <div class="space-y-4">
+                        <!-- Order Card Example 1 (iPhone 15 Pro Max - Pending) -->
+                        <div class="bg-card-bg rounded-lg shadow-sm p-4 border border-gray-200">
+                            <div class="flex justify-between items-start mb-2">
+                                <div class="flex items-center">
+                                    <img src="https://placehold.co/60x60/cccccc/000000?text=iPhone" alt="iPhone 15 Pro Max" class="w-16 h-16 object-cover rounded-md mr-3">
+                                    <div>
+                                        <p class="font-semibold text-dark-text">iPhone 15 Pro Max- Like New</p>
+                                        <p class="text-sm text-gray-text">Seller: @Techseller</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <span class="bg-accent-yellow text-white text-xs font-semibold px-2 py-1 rounded-full flex items-center">
+                                        <i class="fas fa-box-open mr-1"></i>Pending
+                                    </span>
+                                    <p class="text-primary-purple font-bold text-lg mt-1">$999</p>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <label for="tracking-id-iphone" class="block text-sm font-medium text-gray-700">Tracking ID</label>
+                                <input type="text" id="tracking-id-iphone" placeholder="Enter tracking number" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-purple focus:border-primary-purple">
+                            </div>
+                            <button class="w-full bg-primary-purple text-white py-2 rounded-md font-semibold text-sm hover:bg-secondary-purple transition-colors mt-4 flex items-center justify-center">
+                                <i class="fas fa-truck mr-2"></i>Marked as shipped
+                            </button>
+                        </div>
+
+                        <!-- Order Card Example 2 (Asus Geoforce- RX 4080 - Shipped) -->
+                        <div class="bg-card-bg rounded-lg shadow-sm p-4 border border-gray-200">
+                            <div class="flex justify-between items-start mb-2">
+                                <div class="flex items-center">
+                                    <img src="https://placehold.co/60x60/cccccc/000000?text=Asus" alt="Asus Geoforce- RX 4080" class="w-16 h-16 object-cover rounded-md mr-3">
+                                    <div>
+                                        <p class="font-semibold text-dark-text">Asus Geoforce- RX 4080</p>
+                                        <p class="text-sm text-gray-text">Seller: @Techseller</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <span class="bg-blue-500 text-white text-xs font-semibold px-2 py-1 rounded-full flex items-center">
+                                        <i class="fas fa-shipping-fast mr-1"></i>Shipped
+                                    </span>
+                                    <p class="text-primary-purple font-bold text-lg mt-1">$1,299</p>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <label for="tracking-id-asus" class="block text-sm font-medium text-gray-700">Tracking ID</label>
+                                <input type="text" id="tracking-id-asus" value="1Z123456789" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 bg-gray-100 cursor-not-allowed" readonly>
+                            </div>
+                            <button class="w-full bg-gray-400 text-white py-2 rounded-md font-semibold text-sm mt-4 cursor-not-allowed" disabled>
+                                Marked as shipped
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Buyer Orders Screen -->
+            <div id="buyer-orders-screen" class="hidden">
+                <div class="p-4">
+                    <div class="relative mb-6">
+                        <input type="text" placeholder="Search orders..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-purple">
+                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    </div>
+
+                    <div class="space-y-4">
+                        <!-- Buyer Order Card Example 1 (iPhone 15 Pro max - Shipped) -->
+                        <div class="bg-card-bg rounded-lg shadow-sm p-4 border border-gray-200">
+                            <div class="flex justify-between items-start mb-2">
+                                <div class="flex items-center">
+                                    <img src="https://placehold.co/60x60/cccccc/000000?text=iPhone" alt="iPhone 15 Pro max" class="w-16 h-16 object-cover rounded-md mr-3">
+                                    <div>
+                                        <p class="font-semibold text-dark-text">iPhone 15 Pro max Black | 1TB</p>
+                                        <p class="text-sm text-gray-text">Seller: @Techseller</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <span class="bg-blue-500 text-white text-xs font-semibold px-2 py-1 rounded-full flex items-center">
+                                        <i class="fas fa-shipping-fast mr-1"></i>Shipped
+                                    </span>
+                                    <p class="text-primary-purple font-bold text-lg mt-1">$999</p>
+                                </div>
+                            </div>
+                            <div class="mt-3 border-t border-gray-200 pt-3">
+                                <label for="buyer-tracking-id-iphone" class="block text-sm font-medium text-gray-700">Tracking ID:</label>
+                                <div class="flex items-center mt-1">
+                                    <input type="text" id="buyer-tracking-id-iphone" value="1Z123456789" class="block w-full border border-gray-300 rounded-l-md shadow-sm py-2 px-3 bg-gray-100 cursor-not-allowed" readonly>
+                                    <button class="bg-gray-200 text-gray-700 py-2 px-3 rounded-r-md hover:bg-gray-300 transition-colors copy-btn" data-target-id="buyer-tracking-id-iphone">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <button class="w-full bg-accent-orange text-white py-2 rounded-md font-semibold text-sm hover:bg-red-600 transition-colors mt-4 flex items-center justify-center raise-dispute-btn" data-product-name="iPhone 15 Pro max Black | 1TB" data-seller-handle="@Techseller" data-order-id="#1">
+                                <i class="fas fa-exclamation-triangle mr-2"></i>Raise a Dispute
+                            </button>
+                            <button class="w-full bg-accent-green text-white py-2 rounded-md font-semibold text-sm hover:bg-green-600 transition-colors mt-2 flex items-center justify-center confirm-received-btn">
+                                <i class="fas fa-check-circle mr-2"></i>Confirm Item Received
+                            </button>
+                        </div>
+
+                        <!-- Buyer Order Card Example 2 (Asus Geoforce- RX 4080 - Pending) -->
+                        <div class="bg-card-bg rounded-lg shadow-sm p-4 border border-gray-200">
+                            <div class="flex justify-between items-start mb-2">
+                                <div class="flex items-center">
+                                    <img src="https://placehold.co/60x60/cccccc/000000?text=Asus" alt="Asus Geoforce- RX 4080" class="w-16 h-16 object-cover rounded-md mr-3">
+                                    <div>
+                                        <p class="font-semibold text-dark-text">Asus Geoforce- RX 4080</p>
+                                        <p class="text-sm text-gray-text">Seller: @Techseller</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <span class="bg-accent-yellow text-white text-xs font-semibold px-2 py-1 rounded-full flex items-center">
+                                        <i class="fas fa-box-open mr-1"></i>Pending
+                                    </span>
+                                    <p class="text-primary-purple font-bold text-lg mt-1">$1,299</p>
+                                </div>
+                            </div>
+                             <div class="mt-3 border-t border-gray-200 pt-3">
+                                <label for="buyer-tracking-id-asus" class="block text-sm font-medium text-gray-700">Tracking ID:</label>
+                                <div class="flex items-center mt-1">
+                                    <input type="text" id="buyer-tracking-id-asus" placeholder="Tracking not yet provided" class="block w-full border border-gray-300 rounded-l-md shadow-sm py-2 px-3 bg-gray-100 cursor-not-allowed" readonly>
+                                    <button class="bg-gray-200 text-gray-700 py-2 px-3 rounded-r-md hover:bg-gray-300 transition-colors copy-btn" data-target-id="buyer-tracking-id-asus">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <button class="w-full bg-accent-orange text-white py-2 rounded-md font-semibold text-sm hover:bg-red-600 transition-colors mt-4 flex items-center justify-center raise-dispute-btn" data-product-name="Gaming Laptop - RTX 4080" data-seller-handle="@gamerpro" data-order-id="#3">
+                                <i class="fas fa-exclamation-triangle mr-2"></i>Raise a Dispute
+                            </button>
+                             <button class="w-full bg-gray-400 text-white py-2 rounded-md font-semibold text-sm mt-2 cursor-not-allowed" disabled>
+                                Confirm Item Received
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- New Seller Dashboard Screen -->
+            <div id="seller-dashboard-screen" class="p-4 hidden">
+                <h2 class="text-2xl font-bold text-dark-text mb-4">Seller Dashboard</h2>
+                <p class="text-gray-text text-sm mb-6">Manage your listings and orders.</p>
+
+                <div class="space-y-4">
+                    <button id="dashboard-list-new-product-btn" class="w-full bg-primary-purple text-white py-3 rounded-md font-semibold text-lg hover:bg-secondary-purple transition-colors">
+                        <i class="fas fa-plus mr-2"></i>List New Product
+                    </button>
+                    <button id="dashboard-view-orders-btn" class="w-full bg-gray-200 text-dark-text py-3 rounded-md font-semibold text-lg hover:bg-gray-300 transition-colors">
+                        <i class="fas fa-clipboard-list mr-2"></i>View Your Orders
+                    </button>
+                </div>
+
+                <div class="mt-8 p-4 bg-light-green-bg rounded-lg border border-accent-green text-center">
+                    <i class="fas fa-info-circle text-accent-green text-2xl mb-2"></i>
+                    <p class="text-dark-text font-semibold">Welcome to your seller hub!</p>
+                    <p class="text-sm text-gray-700">Start listing your products or manage your existing orders.</p>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Bottom Navigation Bar matching Splash-1.png -->
+        <nav class="w-full bg-white border-t border-gray-200 flex justify-around items-center h-16 shadow-md rounded-t-lg">
+            <button class="nav-item flex flex-col items-center p-2 text-primary-purple" data-target="home-screen">
+                <i class="fas fa-home text-xl"></i>
+                <span class="text-xs font-semibold mt-1">Home</span>
+            </button>
+            <button class="nav-item flex flex-col items-center p-2 text-gray-500" data-target="explore-screen">
+                <i class="fas fa-search text-xl"></i>
+                <span class="text-xs font-semibold mt-1">Explore</span>
+            </button>
+            <button class="nav-item flex flex-col items-center p-2 text-gray-500" data-target="leaderboard-screen">
+                <i class="fas fa-trophy text-xl"></i>
+                <span class="text-xs font-semibold mt-1">Leaderboard</span>
+            </button>
+            <button class="nav-item flex flex-col items-center p-2 text-gray-500 relative" data-target="notification-screen">
+                <i class="fas fa-bell text-xl"></i>
+                <span class="text-xs font-semibold mt-1">Notification</span>
+                <!-- Notification Badge -->
+                <span id="notification-badge" class="absolute top-1 right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">2</span>
+            </button>
+            <button class="nav-item flex flex-col items-center p-2 text-gray-500" data-target="profile-screen">
+                <i class="fas fa-user-circle text-xl"></i>
+                <span class="text-xs font-semibold mt-1">Profile</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Reusable Confirmation Modal (Confrimation.png, Confrimation-1.png, Confrimation-2.png) -->
+    <div id="confirmation-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white p-6 rounded-lg shadow-xl text-center w-full max-w-xs mx-4">
+            <h3 id="modal-title" class="text-xl font-bold text-dark-text mb-3"></h3>
+            <p id="modal-message" class="text-gray-text mb-6"></p>
+            <button id="modal-ok-btn" class="bg-blue-500 text-white py-2 px-6 rounded-md font-semibold hover:bg-blue-600 transition-colors">Ok</button>
+        </div>
+    </div>
+
+    <!-- Buyer Protection Info Modal (Buyer Protection.png) -->
+    <div id="buyer-protection-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white p-6 rounded-lg shadow-xl text-center w-full max-w-xs mx-4">
+            <div class="flex items-center justify-center mb-4">
+                <i class="fas fa-check-circle text-accent-green text-2xl mr-2"></i>
+                <h3 class="text-xl font-bold text-dark-text">Buyer Protection</h3>
+            </div>
+            <p class="text-gray-text mb-6">If there's an issue with your order, our dispute resolution system ensures fair outcomes for all parties</p>
+            <button id="buyer-protection-ok-btn" class="text-blue-500 py-2 px-6 rounded-md font-semibold hover:bg-gray-100 transition-colors">Ok</button>
+        </div>
+    </div>
+
+    <!-- Dispute Modal (Dispute.png, image 62.png) -->
+    <div id="dispute-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-dark-text">Raise a dispute</h3>
+                <button id="dispute-modal-close-btn" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="bg-light-yellow-bg border-l-4 border-accent-orange rounded-md p-4 mb-6 flex items-start">
+                <i class="fas fa-exclamation-triangle text-accent-orange text-xl mr-3 mt-1"></i>
+                <div>
+                    <h4 class="font-semibold text-dark-text" id="dispute-product-name">Gaming Laptop- RTX 4080</h4>
+                    <p class="text-sm text-gray-text">Seller: <span id="dispute-seller-handle">@gamepro</span></p>
+                    <p class="text-sm text-gray-text">Order: <span id="dispute-order-id">#3</span></p>
+                </div>
+            </div>
+
+            <form class="space-y-4">
+                <div>
+                    <label for="dispute-reason" class="block text-sm font-medium text-gray-700">Reason for Dispute*</label>
+                    <textarea id="dispute-reason" rows="4" placeholder="Please describe the issue (e.g item not received, item not as described, changed item etc,)" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-purple focus:border-primary-purple"></textarea>
+                </div>
+                <div>
+                    <label for="additional-details" class="block text-sm font-medium text-gray-700">Additional Details</label>
+                    <textarea id="additional-details" rows="3" placeholder="Tell buyers about yourself and what you sell..." class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-purple focus:border-primary-purple"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Upload Evidence (Optional)</label>
+                    <label class="w-full h-32 flex flex-col items-center justify-center rounded-lg image-upload-placeholder">
+                        <input type="file" class="hidden" accept="image/png,image/jpeg,application/pdf" multiple>
+                        <i class="fas fa-upload text-primary-purple text-2xl mb-2"></i>
+                        <span class="text-gray-text text-sm">Click to upload photos or documents</span>
+                        <span class="text-xs text-gray-400">PNG, JPG, PDF up to 10MB each</span>
+                    </label>
+                </div>
+                <div class="bg-light-green-bg border border-accent-green rounded-lg p-4 flex items-start text-sm text-gray-700">
+                    <i class="fas fa-shield-alt text-accent-green text-xl mr-3 mt-1"></i>
+                    <div>
+                        <p class="font-semibold text-dark-text">Dispute Protection</p>
+                        <p class="text-xs text-gray-700">Our moderators will review your dispute within 24 hours. Both parties will be notified of the decision. During this time, Escrow funds will remain secure.</p>
+                    </div>
+                </div>
+                <div class="flex space-x-4 mt-6">
+                    <button type="button" id="dispute-cancel-btn" class="flex-1 bg-gray-200 text-dark-text py-3 rounded-md font-semibold hover:bg-gray-300 transition-colors">Cancel</button>
+                    <button type="submit" id="submit-dispute-btn" class="flex-1 bg-accent-orange text-white py-3 rounded-md font-semibold hover:bg-red-600 transition-colors">Submit Dispute</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Secure Purchase Multi-Step Modal (Perchase Pop up series) -->
+    <div id="secure-purchase-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-end justify-center z-50 hidden">
+        <div class="bg-white p-6 rounded-t-xl shadow-2xl w-full max-w-md mx-auto modal-content min-h-[70vh]">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-dark-text">Secure Purchase</h3>
+                <button id="secure-purchase-modal-close-btn" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="w-full bg-gray-200 rounded-full h-2 mb-6">
+                <div id="secure-purchase-progress" class="bg-primary-purple h-2 rounded-full progress-bar-fill" style="width: 0%;"></div>
+            </div>
+
+            <!-- Modal Steps Container -->
+            <div id="secure-purchase-steps-container" class="space-y-6">
+                <!-- Step 1: Product Summary (Perchase Pop up.png, image 46.png) -->
+                <div id="step-product-summary" class="secure-purchase-step">
+                    <h4 class="text-lg font-semibold text-dark-text mb-4">Product Summary</h4>
+                    <div class="bg-card-bg rounded-lg shadow-sm p-4 flex items-center justify-between border border-gray-200 mb-4">
+                        <div class="flex items-center">
+                            <img id="modal-product-image" src="" alt="Product Image" class="w-16 h-16 object-cover rounded-md mr-3">
+                            <div>
+                                <p class="font-semibold text-dark-text" id="modal-product-name">iPhone 15 Pro max Black | 1TB</p>
+                                <p class="text-sm text-gray-text">Seller: <span id="modal-seller-handle">@Techseller</span></p>
+                            </div>
+                        </div>
+                        <p class="text-primary-purple font-bold text-lg" id="modal-product-price-summary">$999</p>
+                    </div>
+
+                    <div class="bg-card-bg rounded-lg shadow-sm p-4 border border-gray-200">
+                        <h5 class="font-semibold text-dark-text mb-2">Product Reviews (0)</h5>
+                        <p class="text-sm text-gray-text text-center">No reviews yet for this product</p>
+                    </div>
+
+                    <div class="flex justify-end mt-6">
+                        <button class="w-full bg-primary-purple text-white py-3 rounded-md font-semibold text-lg hover:bg-secondary-purple transition-colors" data-action="next">Continue to Delivery Info</button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Delivery Information (Perchase Pop up-1.png, image 47.png) -->
+                <div id="step-delivery-info" class="secure-purchase-step hidden">
+                    <h4 class="text-lg font-semibold text-dark-text mb-4">Delivery Information</h4>
+                    <div class="bg-card-bg rounded-lg shadow-sm p-4 space-y-3 border border-gray-200 mb-6">
+                        <div class="flex items-center">
+                            <i class="fas fa-map-marker-alt text-primary-purple mr-3"></i>
+                            <div>
+                                <p class="font-semibold text-dark-text">Shipping Details</p>
+                                <p class="text-sm text-gray-text">Ships from Germany</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-clock text-primary-purple mr-3"></i>
+                            <div>
+                                <p class="font-semibold text-dark-text">Expected delivery</p>
+                                <p class="text-sm text-gray-text">5-10 business days</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-file-alt text-primary-purple mr-3"></i>
+                            <div>
+                                <p class="font-semibold text-dark-text">Shipping policy</p>
+                                <p class="text-sm text-gray-text">Sellers are responsible for delivery</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="delivery-note-modal" class="block text-sm font-medium text-gray-700">Delivery Note (Optional)</label>
+                        <textarea id="delivery-note-modal" rows="3" placeholder="Add any special delivery instructions or address details..." class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-purple focus:border-primary-purple"></textarea>
+                    </div>
+
+                    <div class="flex space-x-4 mt-6">
+                        <button class="flex-1 bg-gray-200 text-dark-text py-3 rounded-md font-semibold hover:bg-gray-300 transition-colors" data-action="back">Back</button>
+                        <button class="flex-1 bg-primary-purple text-white py-3 rounded-md font-semibold text-lg hover:bg-secondary-purple transition-colors" data-action="next">Continue to Escrow</button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Escrow Protection (Perchase Pop up-8.png, image 48.png) -->
+                <div id="step-escrow-protection" class="secure-purchase-step hidden">
+                    <h4 class="text-lg font-semibold text-dark-text mb-4">Escrow Protection</h4>
+                    <div class="bg-light-green-bg rounded-lg p-4 space-y-4 border border-accent-green mb-6">
+                        <div class="flex items-center text-accent-green">
+                            <i class="fas fa-shield-alt text-2xl mr-3"></i>
+                            <h5 class="font-bold text-dark-text">Your Payment is Protected</h5>
+                        </div>
+                        <p class="text-sm text-gray-700">Your payment will be held in escrow until you confirm you've received the item.</p>
+
+                        <div class="space-y-3">
+                            <div class="flex items-center">
+                                <span class="w-6 h-6 bg-accent-green text-white rounded-full flex items-center justify-center text-sm mr-3">1</span>
+                                <p class="text-dark-text font-medium">Pay into escrow</p>
+                                <p class="text-gray-text text-sm ml-auto">Your payment is secured</p>
+                                <i class="fas fa-chevron-right text-gray-400 ml-2"></i>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="w-6 h-6 bg-accent-green text-white rounded-full flex items-center justify-center text-sm mr-3">2</span>
+                                <p class="text-dark-text font-medium">Seller ships item</p>
+                                <p class="text-gray-text text-sm ml-auto">Tracking info provided</p>
+                                <i class="fas fa-chevron-right text-gray-400 ml-2"></i>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="w-6 h-6 bg-accent-green text-white rounded-full flex items-center justify-center text-sm mr-3">3</span>
+                                <p class="text-dark-text font-medium">Confirm delivery</p>
+                                <p class="text-gray-text text-sm ml-auto">You release the funds</p>
+                                <i class="fas fa-chevron-right text-gray-400 ml-2"></i>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="w-6 h-6 bg-accent-green text-white rounded-full flex items-center justify-center text-sm mr-3">4</span>
+                                <p class="text-dark-text font-medium">Leave a review</p>
+                                <p class="text-gray-text text-sm ml-auto">Rate your experience</p>
+                                <i class="fas fa-chevron-right text-gray-400 ml-2"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center mb-6">
+                        <i class="fas fa-check-circle text-primary-purple text-lg mr-2"></i>
+                        <p class="text-gray-text text-sm">Buyer Protection <i class="fas fa-info-circle text-gray-400 ml-1 cursor-pointer" id="show-buyer-protection-modal"></i></p>
+                    </div>
+
+                    <div class="flex space-x-4 mt-6">
+                        <button class="flex-1 bg-gray-200 text-dark-text py-3 rounded-md font-semibold hover:bg-gray-300 transition-colors" data-action="back">Back</button>
+                        <button class="flex-1 bg-primary-purple text-white py-3 rounded-md font-semibold text-lg hover:bg-secondary-purple transition-colors" data-action="next">Proceed to Payment</button>
+                    </div>
+                </div>
+
+                <!-- Step 4: Secure Payment - Connect Wallet (Perchase Pop up-2.png, image 49.png, Perchase Pop up-3.png, image 51.png) -->
+                <div id="step-secure-payment-connect-wallet" class="secure-purchase-step hidden">
+                    <h4 class="text-lg font-semibold text-dark-text mb-4">Secure Payment</h4>
+                    <div class="bg-card-bg rounded-lg shadow-sm p-4 flex items-center justify-between border border-gray-200 mb-6">
+                        <div class="flex items-center">
+                            <img id="modal-product-image-payment" src="" alt="Product Image" class="w-16 h-16 object-cover rounded-md mr-3">
+                            <div>
+                                <p class="font-semibold text-dark-text" id="modal-product-name-payment">iPhone 15 Pro max Black | 1TB</p>
+                            </div>
+                        </div>
+                        <p class="text-primary-purple font-bold text-lg" id="modal-product-price-payment">$999</p>
+                    </div>
+
+                    <p class="text-dark-text text-xl mb-4 text-right">Total (including fees) <span class="text-accent-green font-bold" id="modal-total-price-payment">$999</span></p>
+
+                    <div class="bg-processing-bg rounded-lg p-4 flex flex-col items-center justify-center text-center border border-primary-purple mb-6">
+                        <i class="fas fa-wallet text-primary-purple text-4xl mb-3"></i>
+                        <p class="text-dark-text font-semibold mb-2">Connect Your Wallet to proceed with secure payment</p>
+                        <button id="connect-wallet-btn" class="w-full bg-primary-purple text-white py-3 rounded-md font-semibold text-lg hover:bg-secondary-purple transition-colors">
+                            Connect Wallet
+                        </button>
+                    </div>
+
+                    <div class="flex space-x-4 mt-6">
+                        <button class="flex-1 bg-gray-200 text-dark-text py-3 rounded-md font-semibold hover:bg-gray-300 transition-colors" data-action="back">Back</button>
+                        <!-- This button will be enabled by JS after wallet is "connected" -->
+                        <button id="continue-to-escrow-after-wallet" class="flex-1 bg-primary-purple text-white py-3 rounded-md font-semibold text-lg opacity-50 cursor-not-allowed" disabled data-action="next">
+                            Continue to Escrow
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 5: Secure Payment - Pay Escrow (Perchase Pop up-4.png, image 50.png) -->
+                <div id="step-secure-payment-pay-escrow" class="secure-purchase-step hidden">
+                    <h4 class="text-lg font-semibold text-dark-text mb-4">Secure Payment</h4>
+                    <div class="bg-card-bg rounded-lg shadow-sm p-4 flex items-center justify-between border border-gray-200 mb-6">
+                        <div class="flex items-center">
+                            <img src="https://placehold.co/16x16/EADDFF/6F00FF?text=🛒" alt="Product Image" class="w-16 h-16 object-cover rounded-md mr-3" id="modal-product-image-pay-escrow">
+                            <div>
+                                <p class="font-semibold text-dark-text" id="modal-product-name-pay-escrow">iPhone 15 Pro max Black | 1TB</p>
+                            </div>
+                        </div>
+                        <p class="text-primary-purple font-bold text-lg" id="modal-product-price-pay-escrow">$999</p>
+                    </div>
+
+                    <p class="text-dark-text text-xl mb-4 text-right">Total (including fees) <span class="text-accent-green font-bold" id="modal-total-price-pay-escrow">$999</span></p>
+
+                    <div class="bg-light-green-bg rounded-lg p-4 flex flex-col items-center justify-center text-center border border-accent-green mb-6">
+                        <i class="fas fa-lock text-accent-green text-4xl mb-3"></i>
+                        <p class="text-dark-text font-semibold">Ready to secure your payment in escrow</p>
+                    </div>
+
+                    <div class="flex space-x-4 mt-6">
+                        <button class="flex-1 bg-gray-200 text-dark-text py-3 rounded-md font-semibold hover:bg-gray-300 transition-colors" data-action="back">Back</button>
+                        <button id="pay-escrow-btn" class="flex-1 bg-accent-green text-white py-3 rounded-md font-semibold text-lg hover:bg-green-600 transition-colors">
+                            Pay <span id="pay-amount-btn">$1,299</span> (Escrow)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 6: Payment Processing (Perchase Pop up-5.png, image 52.png) -->
+                <div id="step-payment-processing" class="secure-purchase-step hidden">
+                    <h4 class="text-lg font-semibold text-dark-text mb-4">Secure Payment</h4>
+                    <div class="bg-card-bg rounded-lg shadow-sm p-4 flex items-center justify-between border border-gray-200 mb-6">
+                        <div class="flex items-center">
+                            <img src="https://placehold.co/16x16/EADDFF/6F00FF?text=🛒" alt="Product Image" class="w-16 h-16 object-cover rounded-md mr-3" id="modal-product-image-processing">
+                            <div>
+                                <p class="font-semibold text-dark-text" id="modal-product-name-processing">iPhone 15 Pro max Black | 1TB</p>
+                            </div>
+                        </div>
+                        <p class="text-primary-purple font-bold text-lg" id="modal-product-price-processing">$999</p>
+                    </div>
+
+                    <p class="text-dark-text text-xl mb-4 text-right">Total (including fees) <span class="text-accent-green font-bold" id="modal-total-price-processing">$999</span></p>
+
+                    <div class="bg-processing-bg rounded-lg p-4 flex flex-col items-center justify-center text-center border border-primary-purple mb-6">
+                        <i class="fas fa-spinner fa-spin text-primary-purple text-4xl mb-3"></i>
+                        <p class="text-dark-text font-semibold">Processing payment...</p>
+                    </div>
+
+                    <div class="flex space-x-4 mt-6">
+                        <button class="flex-1 bg-gray-200 text-dark-text py-3 rounded-md font-semibold hover:bg-gray-300 transition-colors opacity-50 cursor-not-allowed" disabled>Back</button>
+                        <button class="flex-1 bg-gray-400 text-white py-3 rounded-md font-semibold text-lg opacity-50 cursor-not-allowed" disabled>
+                            Processing payment...
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 7: Order Status - Payment Confirmed (Perchase Pop up-7.png, image 60.png) -->
+                <div id="step-order-status-pending" class="secure-purchase-step hidden">
+                    <h4 class="text-lg font-semibold text-dark-text mb-4">Order Status</h4>
+                    <div class="bg-card-bg rounded-lg shadow-sm p-4 space-y-3 flex flex-col items-center justify-center text-center border border-gray-200 mb-6">
+                        <i class="fas fa-clock text-primary-purple text-4xl mb-3"></i>
+                        <p class="font-semibold text-dark-text">Payment Confirmed</p>
+                        <p class="text-sm text-gray-text">Waiting for seller to mark as shipped...</p>
+                        <span class="bg-gray-200 text-dark-text text-xs font-semibold px-3 py-1 rounded-full mt-2">Order #<span id="order-status-pending-id">1</span></span>
+                    </div>
+
+                    <div class="bg-card-bg rounded-lg shadow-sm p-4 border border-gray-200 mb-6">
+                        <h5 class="font-semibold text-dark-text mb-2">Transaction Details</h5>
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center">
+                                <img src="https://placehold.co/40x40/cccccc/000000?text=Prod" alt="Product Image" class="w-10 h-10 object-cover rounded-md mr-2" id="transaction-details-image-pending">
+                                <div>
+                                    <p class="font-semibold text-dark-text" id="transaction-details-name-pending">iPhone 15 Pro Max - Like New</p>
+                                    <p class="text-xs text-gray-text">Seller: <span id="transaction-details-seller-pending">@techseller</span></p>
+                                </div>
+                            </div>
+                            <p class="text-primary-purple font-bold text-lg" id="transaction-details-price-pending">$999</p>
+                        </div>
+                        <p class="text-xs text-gray-text">Transaction: <span id="transaction-hash-pending">0xfcd184ee43bc48...</span></p>
+                    </div>
+
+                    <div class="bg-accent-yellow bg-opacity-20 text-accent-yellow rounded-lg p-4 flex items-start text-sm mb-6">
+                        <i class="fas fa-info-circle text-lg mr-3 mt-1"></i>
+                        <p>You can cancel this order if the seller doesn't ship within the expected timeframe.</p>
+                    </div>
+                    
+                    <button class="w-full bg-accent-orange text-white py-3 rounded-md font-semibold text-lg hover:bg-red-600 transition-colors">Request Cancellation</button>
+
+                    <button class="w-full bg-gray-200 text-dark-text py-3 rounded-md font-semibold text-lg hover:bg-gray-300 transition-colors mt-4" data-action="close-modal">Close</button>
+                </div>
+
+                <!-- Step 8: Order Status - Item Shipped (Perchase Pop up-6.png, image 53.png, image 54.png) -->
+                <div id="step-order-status-shipped" class="secure-purchase-step hidden">
+                    <h4 class="text-lg font-semibold text-dark-text mb-4">Order Status</h4>
+                    <div class="bg-card-bg rounded-lg shadow-sm p-4 space-y-3 flex flex-col items-center justify-center text-center border border-gray-200 mb-6">
+                        <i class="fas fa-box text-primary-purple text-4xl mb-3"></i>
+                        <p class="font-semibold text-dark-text">Item Shipped</p>
+                        <p class="text-sm text-gray-text">Track your order and confirm when received</p>
+                        <span class="bg-gray-200 text-dark-text text-xs font-semibold px-3 py-1 rounded-full mt-2">Order #<span id="order-status-shipped-id">3</span></span>
+                    </div>
+
+                    <div class="bg-card-bg rounded-lg shadow-sm p-4 border border-gray-200 mb-6">
+                        <h5 class="font-semibold text-dark-text mb-2">Transaction Details</h5>
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center">
+                                <img src="https://placehold.co/40x40/cccccc/000000?text=Prod" alt="Product Image" class="w-10 h-10 object-cover rounded-md mr-2" id="transaction-details-image-shipped">
+                                <div>
+                                    <p class="font-semibold text-dark-text" id="transaction-details-name-shipped">Gaming Laptop - RTX 4080</p>
+                                    <p class="text-xs text-gray-text">Seller: <span id="transaction-details-seller-shipped">@gamerpro</span></p>
+                                </div>
+                            </div>
+                            <p class="text-primary-purple font-bold text-lg" id="transaction-details-price-shipped">$1,299</p>
+                        </div>
+                        <p class="text-xs text-gray-text">Transaction: <span id="transaction-hash-shipped">0x80b8c4ab46a9a...</span></p>
+                    </div>
+                    
+                    <button class="w-full bg-gray-200 text-dark-text py-3 rounded-md font-semibold text-lg hover:bg-gray-300 transition-colors" data-action="close-modal">Close</button>
+                </div>
+            </div>
+
+            <div id="rating-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+                <div class="bg-white p-6 rounded-lg shadow-xl text-center w-full max-w-xs mx-4">
+                    <h3 class="text-xl font-bold text-dark-text mb-3">Rate your experience!</h3>
+                    <div class="flex justify-center space-x-2 mb-6">
+                        <i class="fas fa-star text-gray-300 text-3xl cursor-pointer hover:text-accent-yellow rating-star" data-rating="1"></i>
+                        <i class="fas fa-star text-gray-300 text-3xl cursor-pointer hover:text-accent-yellow rating-star" data-rating="2"></i>
+                        <i class="fas fa-star text-gray-300 text-3xl cursor-pointer hover:text-accent-yellow rating-star" data-rating="3"></i>
+                        <i class="fas fa-star text-gray-300 text-3xl cursor-pointer hover:text-accent-yellow rating-star" data-rating="4"></i>
+                        <i class="fas fa-star text-gray-300 text-3xl cursor-pointer hover:text-accent-yellow rating-star" data-rating="5"></i>
+                    </div>
+                    <button id="submit-rating-btn" class="bg-primary-purple text-white py-2 px-6 rounded-md font-semibold hover:bg-secondary-purple transition-colors">Submit Rating</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <script>
+        // DOM Elements
+        const splash1 = document.getElementById('splash1');
+        const splash2 = document.getElementById('splash2');
+        const appContainer = document.getElementById('app-container');
+        const buyProductsTab = document.getElementById('buy-products-tab');
+        const sellProductsTab = document.getElementById('sell-products-tab');
+        const tabIndicator = document.getElementById('tab-indicator');
+        const marketplaceBuySection = document.getElementById('marketplace-buy-section');
+        const marketplaceSellSection = document.getElementById('marketplace-sell-section');
+        
+        let navItems; 
+        let screens; 
+
+        const mainHeader = document.getElementById('main-header');
+        const headerLeft = document.getElementById('header-left');
+        const headerCenter = document.getElementById('header-center');
+        const headerRight = document.getElementById('header-right');
+
+        // Modals
+        const confirmationModal = document.getElementById('confirmation-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalMessage = document.getElementById('modal-message');
+        const modalOkBtn = document.getElementById('modal-ok-btn');
+
+        const buyerProtectionModal = document.getElementById('buyer-protection-modal');
+        const buyerProtectionOkBtn = document.getElementById('buyer-protection-ok-btn');
+
+        const disputeModal = document.getElementById('dispute-modal');
+        const disputeModalCloseBtn = document.getElementById('dispute-modal-close-btn');
+        const disputeProductName = document.getElementById('dispute-product-name');
+        const disputeSellerHandle = document.getElementById('dispute-seller-handle');
+        const disputeOrderId = document.getElementById('dispute-order-id');
+        const disputeCancelBtn = document.getElementById('dispute-cancel-btn');
+        const submitDisputeBtn = document.getElementById('submit-dispute-btn');
+
+        const securePurchaseModal = document.getElementById('secure-purchase-modal');
+        const securePurchaseCloseBtn = document.getElementById('secure-purchase-modal-close-btn');
+        const securePurchaseProgress = document.getElementById('secure-purchase-progress');
+        const securePurchaseSteps = document.querySelectorAll('.secure-purchase-step');
+        let currentSecurePurchaseStep = 0;
+
+        // Elements for secure purchase modal data population
+        const modalProductImage = document.getElementById('modal-product-image');
+        const modalProductName = document.getElementById('modal-product-name');
+        const modalSellerHandle = document.getElementById('modal-seller-handle');
+        const modalProductPriceSummary = document.getElementById('modal-product-price-summary');
+
+        const modalProductImagePayment = document.getElementById('modal-product-image-payment');
+        const modalProductNamePayment = document.getElementById('modal-product-name-payment');
+        const modalProductPricePayment = document.getElementById('modal-product-price-payment');
+        const modalTotalPricePayment = document.getElementById('modal-total-price-payment');
+
+        const modalProductImagePayEscrow = document.getElementById('modal-product-image-pay-escrow');
+        const modalProductNamePayEscrow = document.getElementById('modal-product-name-pay-escrow');
+        const modalProductPricePayEscrow = document.getElementById('modal-product-price-pay-escrow');
+        const modalTotalPricePayEscrow = document.getElementById('modal-total-price-pay-escrow');
+        const payAmountBtn = document.getElementById('pay-amount-btn');
+
+        const modalProductImageProcessing = document.getElementById('modal-product-image-processing');
+        const modalProductNameProcessing = document.getElementById('modal-product-name-processing');
+        const modalProductPriceProcessing = document.getElementById('modal-product-price-processing');
+        const modalTotalPriceProcessing = document.getElementById('modal-total-price-processing');
+
+        const orderStatusPendingId = document.getElementById('order-status-pending-id');
+        const transactionDetailsImagePending = document.getElementById('transaction-details-image-pending');
+        const transactionDetailsNamePending = document.getElementById('transaction-details-name-pending');
+        const transactionDetailsSellerPending = document.getElementById('transaction-details-seller-pending');
+        const transactionDetailsPricePending = document.getElementById('transaction-details-price-pending');
+        const transactionHashPending = document.getElementById('transaction-hash-pending');
+
+        const orderStatusShippedId = document.getElementById('order-status-shipped-id');
+        const transactionDetailsImageShipped = document.getElementById('transaction-details-image-shipped');
+        const transactionDetailsNameShipped = document.getElementById('transaction-details-name-shipped');
+        const transactionDetailsSellerShipped = document.getElementById('transaction-details-seller-shipped');
+        const transactionDetailsPriceShipped = document.getElementById('transaction-details-price-shipped');
+        const transactionHashShipped = document.getElementById('transaction-hash-shipped');
+
+        // Rating modal elements
+        const ratingModal = document.getElementById('rating-modal');
+        const ratingStars = document.querySelectorAll('.rating-star');
+        const submitRatingBtn = document.getElementById('submit-rating-btn');
+        let selectedRating = 0;
+
+        // Notification badge element
+        const notificationBadge = document.getElementById('notification-badge');
+        let notificationCount = 2; // Initial notification count
+
+        // Helper function to show modals
+        function showModal(title, message, callback) {
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            confirmationModal.classList.remove('hidden');
+            modalOkBtn.onclick = () => {
+                confirmationModal.classList.add('hidden');
+                if (callback) callback();
+            };
+        }
+
+        // --- Secure Purchase Modal Logic ---
+        function showSecurePurchaseModal(product) {
+            // Populate initial step (Product Summary)
+            modalProductImage.src = product.image;
+            modalProductName.textContent = product.name;
+            modalSellerHandle.textContent = product.seller;
+            modalProductPriceSummary.textContent = `$${product.price.toLocaleString()}`;
+
+            // Populate payment steps with product details
+            modalProductImagePayment.src = product.image;
+            modalProductNamePayment.textContent = product.name;
+            modalProductPricePayment.textContent = `$${product.price.toLocaleString()}`;
+            modalTotalPricePayment.textContent = `$${product.price.toLocaleString()}`; // Assuming no additional fees for now
+
+            modalProductImagePayEscrow.src = product.image;
+            modalProductNamePayEscrow.textContent = product.name;
+            modalProductPricePayEscrow.textContent = `$${product.price.toLocaleString()}`;
+            modalTotalPricePayEscrow.textContent = `$${product.price.toLocaleString()}`;
+            payAmountBtn.textContent = `$${product.price.toLocaleString()}`;
+
+            modalProductImageProcessing.src = product.image;
+            modalProductNameProcessing.textContent = product.name;
+            modalProductPriceProcessing.textContent = `$${product.price.toLocaleString()}`;
+            modalTotalPriceProcessing.textContent = `$${product.price.toLocaleString()}`;
+
+            currentSecurePurchaseStep = 0;
+            updateSecurePurchaseStep(currentSecurePurchaseStep);
+            securePurchaseModal.classList.remove('hidden');
+        }
+
+        function updateSecurePurchaseStep(stepIndex) {
+            securePurchaseSteps.forEach((step, index) => {
+                if (index === stepIndex) {
+                    step.classList.remove('hidden');
+                } else {
+                    step.classList.add('hidden');
+                }
+            });
+
+            const totalSteps = securePurchaseSteps.length;
+            const progress = (stepIndex + 1) / totalSteps * 100; // +1 because steps are 0-indexed
+            securePurchaseProgress.style.width = `${progress}%`;
+        }
+
+        securePurchaseModal.addEventListener('click', (event) => {
+            if (event.target.closest('#secure-purchase-modal-close-btn')) {
+                securePurchaseModal.classList.add('hidden');
+            } else if (event.target.dataset.action === 'next') {
+                if (currentSecurePurchaseStep < securePurchaseSteps.length - 1) {
+                    currentSecurePurchaseStep++;
+                    updateSecurePurchaseStep(currentSecurePurchaseStep);
+                }
+            } else if (event.target.dataset.action === 'back') {
+                if (currentSecurePurchaseStep > 0) {
+                    currentSecurePurchaseStep--;
+                    updateSecurePurchaseStep(currentSecurePurchaseStep);
+                }
+            } else if (event.target.dataset.action === 'close-modal') {
+                securePurchaseModal.classList.add('hidden');
+            }
+        });
+
+        // "Buy now" buttons on product cards
+        document.querySelectorAll('.product-card button').forEach(button => {
+            button.addEventListener('click', (event) => {
+                event.stopPropagation(); // Prevent card click event if any
+                const productCard = event.target.closest('.product-card');
+                const product = {
+                    name: productCard.dataset.productName,
+                    price: parseFloat(productCard.dataset.productPrice),
+                    seller: productCard.dataset.seller,
+                    image: productCard.dataset.image
+                };
+                showSecurePurchaseModal(product);
+            });
+        });
+
+        // Handle "Connect Wallet" button
+        const connectWalletBtn = document.getElementById('connect-wallet-btn');
+        const continueToEscrowAfterWalletBtn = document.getElementById('continue-to-escrow-after-wallet');
+        if (connectWalletBtn) {
+            connectWalletBtn.addEventListener('click', () => {
+                connectWalletBtn.textContent = 'Connecting...';
+                connectWalletBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                connectWalletBtn.disabled = true;
+
+                setTimeout(() => {
+                    showModal('Connected', 'Your wallet has been successfully connected', () => {
+                        connectWalletBtn.textContent = 'Wallet Connected';
+                        connectWalletBtn.classList.remove('bg-primary-purple', 'hover:bg-secondary-purple');
+                        connectWalletBtn.classList.add('bg-accent-green', 'cursor-not-allowed'); // Keep disabled
+                        continueToEscrowAfterWalletBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                        continueToEscrowAfterWalletBtn.disabled = false;
+                        connectWalletBtn.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Wallet Connected'; // Add checkmark
+                    });
+                }, 1500); // Simulate connection time
+            });
+        }
+
+        // Handle "Pay (Escrow)" button
+        const payEscrowBtn = document.getElementById('pay-escrow-btn');
+        if (payEscrowBtn) {
+            payEscrowBtn.addEventListener('click', () => {
+                updateSecurePurchaseStep(5); // Go to processing step
+                setTimeout(() => {
+                    showModal('Successful', 'Your payment was successful and your item is on the way', () => {
+                        // After successful payment, go to order status shipped.
+                        // For demonstration, we'll hardcode to the shipped status.
+                        // In a real app, this would depend on actual order status.
+                        orderStatusShippedId.textContent = 'XXYYZZ'; // Example ID
+                        transactionDetailsImageShipped.src = modalProductImageProcessing.src;
+                        transactionDetailsNameShipped.textContent = modalProductNameProcessing.textContent;
+                        transactionDetailsSellerShipped.textContent = modalSellerHandle.textContent || '@Techseller';
+                        transactionDetailsPriceShipped.textContent = modalProductPriceProcessing.textContent;
+                        transactionHashShipped.textContent = '0x' + Math.random().toString(16).substring(2,15); // Random hash
+                        
+                        updateSecurePurchaseStep(7); // Go to Item Shipped Status
+                    });
+                }, 2000); // Simulate processing time
+            });
+        }
+
+        // --- Dispute Modal Logic ---
+        const raiseDisputeBtns = document.querySelectorAll('.raise-dispute-btn');
+        raiseDisputeBtns.forEach(btn => {
+            btn.addEventListener('click', (event) => {
+                const productName = event.target.dataset.productName;
+                const sellerHandle = event.target.dataset.sellerHandle;
+                const orderId = event.target.dataset.orderId;
+
+                disputeProductName.textContent = productName;
+                disputeSellerHandle.textContent = sellerHandle;
+                disputeOrderId.textContent = orderId;
+
+                disputeModal.classList.remove('hidden');
+            });
+        });
+
+        disputeModalCloseBtn.addEventListener('click', () => {
+            disputeModal.classList.add('hidden');
+        });
+        disputeCancelBtn.addEventListener('click', () => {
+            disputeModal.classList.add('hidden');
+        });
+        submitDisputeBtn.addEventListener('click', (event) => {
+            event.preventDefault(); // Prevent form submission for this example
+            showModal('Dispute Submitted', 'Your dispute has been submitted successfully!', () => {
+                disputeModal.classList.add('hidden');
+                showScreen('buyer-orders-screen');
+            });
+        });
+
+        // --- Buyer Protection Modal Logic ---
+        const showBuyerProtectionModalBtn = document.getElementById('show-buyer-protection-modal');
+        if (showBuyerProtectionModalBtn) {
+            showBuyerProtectionModalBtn.addEventListener('click', () => {
+                buyerProtectionModal.classList.remove('hidden');
+            });
+        }
+        if (buyerProtectionOkBtn) {
+            buyerProtectionOkBtn.addEventListener('click', () => {
+                buyerProtectionModal.classList.add('hidden');
+            });
+        }
+
+        // --- Rating Modal Logic ---
+        const confirmReceivedBtns = document.querySelectorAll('.confirm-received-btn');
+        confirmReceivedBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                ratingModal.classList.remove('hidden');
+            });
+        });
+
+        ratingStars.forEach(star => {
+            star.addEventListener('click', (event) => {
+                selectedRating = parseInt(event.target.dataset.rating);
+                ratingStars.forEach((s, index) => {
+                    if (index < selectedRating) {
+                        s.classList.add('text-accent-yellow');
+                        s.classList.remove('text-gray-300');
+                    } else {
+                        s.classList.add('text-gray-300');
+                        s.classList.remove('text-accent-yellow');
+                    }
+                });
+            });
+        });
+
+        submitRatingBtn.addEventListener('click', () => {
+            if (selectedRating > 0) {
+                showModal('Rating Submitted', `You rated ${selectedRating} stars!`, () => {
+                    ratingModal.classList.add('hidden');
+                    // Reset stars
+                    ratingStars.forEach(star => {
+                        star.classList.remove('text-accent-yellow');
+                        star.classList.add('text-gray-300');
+                    });
+                    selectedRating = 0;
+                    showScreen('buyer-orders-screen'); 
+                });
+            } else {
+                showModal('Error', 'Please select a rating.', null);
+            }
+        });
+
+
+        // Initial state: Show Splash 1
+        window.onload = () => {
+            setTimeout(() => {
+                splash1.classList.remove('fade-in');
+                splash1.classList.add('fade-out');
+                setTimeout(() => {
+                    splash1.remove(); 
+                    splash2.classList.remove('hidden-fade');
+                    splash2.classList.add('fade-in');
+                    setTimeout(() => {
+                        splash2.classList.remove('fade-in');
+                        splash2.classList.add('fade-out');
+                        setTimeout(() => {
+                            splash2.remove(); 
+                            appContainer.classList.remove('hidden-fade');
+                            appContainer.classList.add('fade-in');
+
+                            screens = document.querySelectorAll('main > div[id$="-screen"]');
+                            navItems = document.querySelectorAll('.nav-item');
+                            
+                            if (notificationCount > 0) {
+                                notificationBadge.textContent = notificationCount;
+                                notificationBadge.classList.remove('hidden');
+                            } else {
+                                notificationBadge.classList.add('hidden');
+                            }
+
+                            navItems.forEach(item => {
+                                item.addEventListener('click', () => {
+                                    const targetScreen = item.dataset.target;
+                                    showScreen(targetScreen);
+                                    if (targetScreen === 'notification-screen') {
+                                        notificationCount = 0;
+                                        notificationBadge.classList.add('hidden');
+                                    }
+                                });
+                            });
+
+                            document.addEventListener('click', (event) => {
+                                const target = event.target.closest('button');
+                                if (!target) return;
+
+                                if (target.id.includes('-back-btn') || target.id.includes('-close-btn')) {
+                                    showScreen('home-screen');
+                                    if (target.id === 'list-product-back-btn' || target.id === 'order-management-back-btn' || target.id === 'seller-dashboard-back-btn') {
+                                        sellProductsTab.click();
+                                    } else {
+                                        buyProductsTab.click();
+                                    }
+                                }
+                                else if (target.id === 'top-history-icon' || target.id === 'top-shopping-bag-icon') {
+                                    showScreen('buyer-orders-screen');
+                                }
+                            });
+
+                            document.querySelectorAll('.see-more-btn').forEach(button => {
+                                button.addEventListener('click', (event) => {
+                                    event.preventDefault(); 
+                                    const targetScreen = event.target.dataset.target;
+                                    showScreen(targetScreen);
+                                });
+                            });
+
+                            showScreen('home-screen');
+                        }, 500);
+                    }, 2000);
+                }, 500);
+            }, 2000);
+        };
+
+        // Function to update header content based on screen
+        function updateHeader(screenId) {
+            headerLeft.innerHTML = '';
+            headerCenter.innerHTML = '';
+            headerRight.innerHTML = '';
+
+            const backButtonHTML = `
+                <button id="${screenId}-back-btn" class="mr-4 cursor-pointer hover:text-primary-purple">
+                    <i class="fas fa-arrow-left text-xl text-gray-700"></i>
+                </button>
+            `;
+
+            switch (screenId) {
+                case 'home-screen':
+                    headerLeft.innerHTML = `<img src="https://placehold.co/30x30/6F00FF/ffffff?text=KE" alt="Logo" class="w-8 h-8 rounded-full">`;
+                    headerRight.innerHTML = `
+                        <button id="top-history-icon" class="cursor-pointer hover:text-primary-purple"><i class="fas fa-history text-gray-700 text-lg"></i></button>
+                        <button id="top-shopping-bag-icon" class="cursor-pointer hover:text-primary-purple"><i class="fas fa-shopping-bag text-gray-700 text-lg"></i></button>
+                    `;
+                    break;
+                case 'leaderboard-screen':
+                    headerLeft.innerHTML = backButtonHTML.replace('${screenId}', 'leaderboard');
+                    headerCenter.textContent = 'Leaderboard';
+                    break;
+                case 'profile-screen':
+                    headerLeft.innerHTML = backButtonHTML.replace('${screenId}', 'profile');
+                    headerCenter.textContent = 'Profile';
+                    headerRight.innerHTML = `
+                        <button id="profile-close-btn" class="cursor-pointer hover:text-primary-purple">
+                            <i class="fas fa-times text-xl text-gray-700"></i>
+                        </button>
+                    `;
+                    break;
+                case 'list-product-screen':
+                    headerLeft.innerHTML = backButtonHTML.replace('${screenId}', 'list-product');
+                    headerCenter.textContent = 'List New Product';
+                    break;
+                case 'order-management-screen':
+                    headerLeft.innerHTML = backButtonHTML.replace('${screenId}', 'order-management');
+                    headerCenter.textContent = 'Order Management';
+                    break;
+                case 'buyer-orders-screen':
+                    headerLeft.innerHTML = backButtonHTML.replace('${screenId}', 'buyer-orders');
+                    headerCenter.textContent = 'All orders';
+                    break;
+                case 'explore-screen':
+                    headerLeft.innerHTML = backButtonHTML.replace('${screenId}', 'explore');
+                    headerCenter.textContent = 'Explore';
+                    break;
+                case 'notification-screen':
+                    headerLeft.innerHTML = backButtonHTML.replace('${screenId}', 'notification');
+                    headerCenter.textContent = 'Notifications';
+                    break;
+                case 'seller-dashboard-screen':
+                    headerLeft.innerHTML = backButtonHTML.replace('${screenId}', 'seller-dashboard');
+                    headerCenter.textContent = 'Seller Dashboard';
+                    break;
+            }
+        }
+
+        // Function to show a specific screen
+        function showScreen(screenId) {
+            const targetScreenElement = document.getElementById(screenId); 
+            if (!targetScreenElement) {
+                console.error(`Error: Screen with ID '${screenId}' not found.`);
+                return;
+            }
+
+            screens.forEach(screen => {
+                screen.classList.add('hidden');
+            });
+            targetScreenElement.classList.remove('hidden');
+
+            navItems.forEach(item => {
+                const isSellerScreen = ['seller-dashboard-screen', 'list-product-screen', 'order-management-screen'].includes(screenId);
+                const isHomeTarget = item.dataset.target === 'home-screen';
+
+                if ((isSellerScreen && isHomeTarget) || item.dataset.target === screenId) {
+                    item.classList.add('text-primary-purple');
+                    item.classList.remove('text-gray-500');
+                } else {
+                    item.classList.add('text-gray-500');
+                    item.classList.remove('text-primary-purple');
+                }
+            });
+            updateHeader(screenId);
+        }
+
+        // Event listeners for Buy/Sell tabs
+        buyProductsTab.addEventListener('click', () => {
+            buyProductsTab.classList.remove('text-gray-text');
+            buyProductsTab.classList.add('text-dark-text', 'bg-white', 'shadow-sm');
+            sellProductsTab.classList.remove('text-dark-text', 'bg-white', 'shadow-sm');
+            sellProductsTab.classList.add('text-gray-text');
+
+            marketplaceBuySection.classList.remove('hidden');
+            marketplaceSellSection.classList.add('hidden');
+
+            tabIndicator.classList.remove('active-sell');
+            tabIndicator.classList.add('active-buy');
+        });
+
+        sellProductsTab.addEventListener('click', () => {
+            sellProductsTab.classList.remove('text-gray-text');
+            sellProductsTab.classList.add('text-dark-text', 'bg-white', 'shadow-sm');
+            buyProductsTab.classList.remove('text-dark-text', 'bg-white', 'shadow-sm');
+            buyProductsTab.classList.add('text-gray-text');
+
+            marketplaceSellSection.classList.remove('hidden');
+            marketplaceBuySection.classList.add('hidden');
+
+            tabIndicator.classList.remove('active-buy');
+            tabIndicator.classList.add('active-sell');
+        });
+
+        const createSellerForm = document.getElementById('create-seller-form');
+        if (createSellerForm) {
+            createSellerForm.addEventListener('submit', (event) => {
+                event.preventDefault(); 
+                showModal('Successful', 'Your seller account has been successfully created', () => {
+                    showScreen('seller-dashboard-screen'); 
+                });
+            });
+        }
+
+        document.getElementById('dashboard-list-new-product-btn').addEventListener('click', () => {
+            showScreen('list-product-screen');
+        });
+
+        document.getElementById('dashboard-view-orders-btn').addEventListener('click', () => {
+            showScreen('order-management-screen');
+        });
+
+        const listProductForm = document.getElementById('list-product-form');
+        if (listProductForm) {
+            listProductForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                showModal('Successful', 'Your product has been successfully listed', () => {
+                    showScreen('seller-dashboard-screen');
+                });
+            });
+        }
+        
+        document.querySelectorAll('#order-management-screen button.bg-primary-purple').forEach(btn => {
+            btn.addEventListener('click', () => {
+                showModal('Successful', 'Item has been marked as shipped', () => {
+                    showScreen('order-management-screen');
+                });
+            });
+        });
+
+        function copyToClipboard(elementId) {
+            const inputElement = document.getElementById(elementId);
+            inputElement.select();
+            document.execCommand('copy');
+            showModal('Copied!', 'Tracking ID copied to clipboard.', null);
+        }
+
+        document.querySelectorAll('.copy-btn').forEach(button => {
+            button.addEventListener('click', (event) => {
+                const targetId = event.currentTarget.dataset.targetId;
+                copyToClipboard(targetId);
+            });
+        });
+    </script>
+</body>
+</html>
